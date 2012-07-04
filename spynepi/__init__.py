@@ -1,4 +1,4 @@
-
+# encoding: utf8
 #
 # (C) Copyright Arskom Ltd. <info@arskom.com.tr>
 #               Uğurcan Ergün <ugurcanergn@gmail.com>
