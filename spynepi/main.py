@@ -48,6 +48,10 @@ from spyne.model.primitive import Integer
 from spyne.model.table import TableModel
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import ServiceBase
+from spyne.protocol.http import HttpRpc
+from spyne.protocol.xml import XmlObject
+
+from spynepi.entity.project import RdfService
 
 _user_database = create_engine('sqlite:///:memory:')
 metadata = MetaData(bind=_user_database)
@@ -84,12 +88,13 @@ class UserManagerService(ServiceBase):
     def add_user(ctx, user):
         ctx.udc.session.add(user)
         ctx.udc.session.flush()
-
         return user.user_id
 
     @rpc(Integer, _returns=User)
     def get_user(ctx, user_id):
-        return ctx.udc.session.query(User).filter_by(user_id=user_id).one()
+        retval = ctx.udc.session.query(User).filter_by(user_id=user_id).one()
+        ctx.udc.session.expunge(retval)
+        return retval
 
     @rpc(User)
     def set_user(ctx, user):
@@ -118,8 +123,6 @@ def _on_method_return_object(ctx):
     ctx.udc.session.close()
 
 
-
-
 def main():
     # configure logging
     logging.basicConfig(level=logging.DEBUG)
@@ -127,8 +130,10 @@ def main():
     logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
     # configure application
-    application = Application([UserManagerService], 'spyne.examples.user_manager',
-                interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+    #application = Application([UserManagerService], 'spyne.examples.user_manager',
+    #            interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+    application = Application([RdfService],"http://usefulinc.com/ns/doap#",
+                                in_protocol=HttpRpc(), out_protocol=XmlObject())
 
     application.event_manager.add_listener('method_call', _on_method_call)
     application.event_manager.add_listener('method_return_object', _on_method_return_object)
@@ -146,6 +151,6 @@ def main():
     server = make_server('127.0.0.1', 7789, wsgi_app)
 
     # start server
-    print "listening to http://127.0.0.1:7789"
-    print "wsdl is at: http://localhost:7789/?wsdl"
+    logger.info("listening to http://127.0.0.1:7789")
+    logger.info("wsdl is at: http://localhost:7789/?wsdl")
     server.serve_forever()
