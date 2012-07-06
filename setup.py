@@ -20,7 +20,7 @@ setup(
     url='http://github.com/ugurcan377/spynepi',
     license='GPL',
     install_requires=[
-      #'lxml>=2.2.1',
+        "spyne<3.0", "sqlalchemy<0.8", "werkzeug",
     ],
 
     entry_points = {
