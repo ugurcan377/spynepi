@@ -9,6 +9,15 @@ from spyne.model.primitive import Unicode
 
 from spyne.util.odict import odict
 
+class FileRelease(ComplexModel):
+    __namespace__ = "http://usefulinc.com/ns/doap#"
+# TO-DO Wait for the primitive XmlAttribute support
+    _type_info = odict([
+        ('resource', XmlAttribute(String)),
+#        ('file-release', String)
+    ])
+
+
 class Version(ComplexModel):
     __namespace__ = "http://usefulinc.com/ns/doap#"
 
@@ -16,22 +25,21 @@ class Version(ComplexModel):
         ('name', String),
         ('created', Date),
         ('revision', Float),
-        ('resource', XmlAttribute(String)), #ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-
+ #ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         #TO-DO Add path#md5 -> rdf:resource as atrribute
-        ('file-release', String),
+        ('file-release', FileRelease),
     ])
-
 
 
 class Release(ComplexModel):
     __namespace__ = "http://usefulinc.com/ns/doap#"
 
-    Version = Version
+    _type_info = odict([
+        ('about', XmlAttribute(String)),
+        ('Version', Version)
+    ])
 
-
-
-class Developer(ComplexModel):
+class Person(ComplexModel):
     __namespace__ = "http://xmlns.com/foaf/0.1/"
 
     _type_info = odict([
@@ -39,6 +47,13 @@ class Developer(ComplexModel):
         #TO-DO Add atrribute
         ('mbox', String),
     ])
+
+class Developer(ComplexModel):
+    __namespace__ = "http://xmlns.com/foaf/0.1/"
+    _type_info = odict([
+        ('Person',Person)
+    ])
+
 
 
 class Project(ComplexModel):
