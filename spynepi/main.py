@@ -32,6 +32,8 @@ logger = logging.getLogger(__name__)
 
 import sqlalchemy
 
+from lxml import etree
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
