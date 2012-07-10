@@ -23,7 +23,7 @@ class Version(ComplexModel):
     ])
 
 
-class release(ComplexModel):
+class Release(ComplexModel):
     __namespace__ = "http://usefulinc.com/ns/doap#"
 
     _type_info = odict([
@@ -57,9 +57,9 @@ class Project(ComplexModel):
         ('shortdesc', Unicode),
         ('homepage', String),
         ('developer', Developer),
-        ('release', release.customize(max_occurs=float('inf'))),
+        ('release', Release.customize(max_occurs=float('inf'))),
     ])
 
 import datetime
 
-print Project(name="ornek", created=datetime.datetime.now(), release=[release(Version=Version(name="ornek"))])
+

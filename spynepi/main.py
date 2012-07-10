@@ -119,7 +119,6 @@ class UserDefinedContext(object):
 def _on_method_call(ctx):
     ctx.udc = UserDefinedContext()
 
-
 def _on_method_return_object(ctx):
     ctx.udc.session.commit()
     ctx.udc.session.close()
@@ -139,7 +138,6 @@ def main():
 
     application.event_manager.add_listener('method_call', _on_method_call)
     application.event_manager.add_listener('method_return_object', _on_method_return_object)
-
     # configure database
     metadata.create_all()
 

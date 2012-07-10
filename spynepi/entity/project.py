@@ -7,7 +7,7 @@ from spyne.model.primitive import String
 from spyne.service import ServiceBase
 
 from spynepi.core import Project
-from spynepi.core import release
+from spynepi.core import Release
 from spynepi.core import Version
 from spynepi.core import Developer
 from spynepi.core import Person
@@ -22,7 +22,7 @@ class RdfService(ServiceBase):
             homepage="",
             developer=Developer(Person=Person(name="Ugurcan",mbox="")),
             release=[
-                release(
+                Release(
                     Version=Version(**{
                         "name": "ornek",
                          "created": datetime.datetime.now(),
@@ -54,7 +54,7 @@ def _on_method_return_document(ctx):
         fr = temp.find(ns0+"file-release")
         if fr is not None:
             fr.set(rdf+"resource","foo")
-    print etree.tostring(xml,pretty_print=True)
+#    print etree.tostring(xml,pretty_print=True)
 
 
 RdfService.event_manager.add_listener('method_return_document', _on_method_return_document)
