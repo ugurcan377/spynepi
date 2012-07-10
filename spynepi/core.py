@@ -17,7 +17,7 @@ class Version(ComplexModel):
         ('name', String),
         ('created', Date),
         ('revision', Float),
- #ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        #ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         #TO-DO Add path#md5 -> rdf:resource as atrribute
         ('file-release', String),
     ])
@@ -30,6 +30,7 @@ class release(ComplexModel):
         ('Version', Version)
     ])
 
+
 class Person(ComplexModel):
     __namespace__ = "http://xmlns.com/foaf/0.1/"
 
@@ -39,12 +40,12 @@ class Person(ComplexModel):
         ('mbox', String),
     ])
 
+
 class Developer(ComplexModel):
     __namespace__ = "http://xmlns.com/foaf/0.1/"
     _type_info = odict([
-        ('Person',Person)
+        ('Person', Person)
     ])
-
 
 
 class Project(ComplexModel):
