@@ -1,5 +1,6 @@
 
 import datetime
+from lxml import etree
 
 from spyne.decorator import rpc
 from spyne.model.primitive import String
@@ -32,3 +33,10 @@ class RdfService(ServiceBase):
                     about="hubele",
                 )
             ])
+def _on_method_return_document(ctx):
+    ctx.out_document = ctx.out_document[0]
+    ctx.out_document.tag = "{http://usefulinc.com/ns/doap#}Project"
+
+    print etree.tostring(ctx.out_document,pretty_print=True)
+
+RdfService.event_manager.add_listener('method_return_document', _on_method_return_document)

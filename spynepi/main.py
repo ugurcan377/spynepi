@@ -52,10 +52,8 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.service import ServiceBase
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.xml import XmlObject
-from spyne.util.xml import get_object_as_xml
 
 from spynepi.entity.project import RdfService
-from spynepi.core import Project
 
 _user_database = create_engine('sqlite:///:memory:')
 metadata = MetaData(bind=_user_database)
@@ -127,13 +125,6 @@ def _on_method_return_object(ctx):
     ctx.udc.session.close()
 
 
-def _on_method_return_document(ctx):
-    ctx.out_document = ctx.out_document[0]
-    ctx.out_document.tag = "{http://usefulinc.com/ns/doap#}Project"
-
-    print etree.tostring(ctx.out_document,pretty_print=True)
-
-
 def main():
     # configure logging
     logging.basicConfig(level=logging.DEBUG)
@@ -148,7 +139,6 @@ def main():
 
     application.event_manager.add_listener('method_call', _on_method_call)
     application.event_manager.add_listener('method_return_object', _on_method_return_object)
-    RdfService.event_manager.add_listener('method_return_document', _on_method_return_document)
 
     # configure database
     metadata.create_all()
