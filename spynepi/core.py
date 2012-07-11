@@ -9,14 +9,6 @@ from spyne.model.primitive import Unicode
 
 from spyne.util.odict import odict
 
-class FileRelease(ComplexModel):
-    __namespace__ = "http://usefulinc.com/ns/doap#"
-# TO-DO Wait for the primitive XmlAttribute support
-    _type_info = odict([
-        ('resource', XmlAttribute(String)),
-#        ('file-release', String)
-    ])
-
 
 class Version(ComplexModel):
     __namespace__ = "http://usefulinc.com/ns/doap#"
@@ -25,9 +17,9 @@ class Version(ComplexModel):
         ('name', String),
         ('created', Date),
         ('revision', Float),
- #ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        #ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         #TO-DO Add path#md5 -> rdf:resource as atrribute
-        ('file-release', FileRelease),
+        ('file-release', String),
     ])
 
 
@@ -35,9 +27,9 @@ class Release(ComplexModel):
     __namespace__ = "http://usefulinc.com/ns/doap#"
 
     _type_info = odict([
-        ('about', XmlAttribute(String)),
         ('Version', Version)
     ])
+
 
 class Person(ComplexModel):
     __namespace__ = "http://xmlns.com/foaf/0.1/"
@@ -48,12 +40,12 @@ class Person(ComplexModel):
         ('mbox', String),
     ])
 
+
 class Developer(ComplexModel):
     __namespace__ = "http://xmlns.com/foaf/0.1/"
     _type_info = odict([
-        ('Person',Person)
+        ('Person', Person)
     ])
-
 
 
 class Project(ComplexModel):
@@ -63,11 +55,11 @@ class Project(ComplexModel):
         ('name', String),
         ('created', Date),
         ('shortdesc', Unicode),
-        ('homepage', AnyUri),
+        ('homepage', String),
         ('developer', Developer),
         ('release', Release.customize(max_occurs=float('inf'))),
     ])
 
 import datetime
 
-print Project(name="ornek", created=datetime.datetime.now(), release=[Release(Version=Version(name="ornek"))])
+
