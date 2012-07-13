@@ -51,10 +51,10 @@ from spyne.model.table import TableModel
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import ServiceBase
 from spyne.protocol.http import HttpRpc
-from spyne.protocol.http import SpynePiHttpRpc
 from spyne.protocol.xml import XmlObject
 from spyne.const.http import HTTP_404
 
+from spynepi.protocol import SpynePiHttpRpc
 from spynepi.entity.project import RdfService
 from spynepi.entity.root import RootService
 
