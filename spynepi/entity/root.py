@@ -1,4 +1,4 @@
-from spynepi.main import __tablename__
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class Distribution(TableModel,DeclarativeBase):
     protocol_version = Column(sqlalchemy.Float)
 
 
-class SomeService(ServiceBase):
+class RootService(ServiceBase):
     @rpc(Unicode, Unicode, Unicode, Unicode, File)
     def register(name, license, author, home_page, content):
         print "\n\n\n\nHEY:", name, license, author, home_page, content

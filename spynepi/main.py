@@ -51,12 +51,12 @@ from spyne.model.table import TableModel
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import ServiceBase
 from spyne.protocol.http import HttpRpc
-from spyne.protocol.http import OwnHttpRpc
+from spyne.protocol.http import SpynePiHttpRpc
 from spyne.protocol.xml import XmlObject
 from spyne.const.http import HTTP_404
 
 from spynepi.entity.project import RdfService
-from spynepi.entity.some import SomeService
+from spynepi.entity.root import RootService
 
 _user_database = create_engine('sqlite:///:memory:')
 metadata = MetaData(bind=_user_database)
@@ -135,8 +135,8 @@ def main():
     # configure application
     #application = Application([UserManagerService], 'spyne.examples.user_manager',
     #            interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
-    application = Application([SomeService],"http://usefulinc.com/ns/doap#",
-                                in_protocol=OwnHttpRpc(), out_protocol=XmlObject())
+    application = Application([RdfService,RootService],"http://usefulinc.com/ns/doap#",
+                                in_protocol=SpynePiHttpRpc(), out_protocol=XmlObject())
 
     application.event_manager.add_listener('method_call', _on_method_call)
     application.event_manager.add_listener('method_return_object', _on_method_return_object)
