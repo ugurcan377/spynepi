@@ -1,5 +1,4 @@
-
-SpynePi
+Spynepi
 =======
 
 This is a caching PyPI implementation that can be used as a standalone PyPI server
