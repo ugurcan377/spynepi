@@ -104,46 +104,52 @@ class Distribution(TableModel, DeclarativeBase):
 
 
 class RootService(ServiceBase):
-    @rpc()
-    def register(ctx):
+    @rpc(Unicode, Unicode, Unicode, Unicode, File, Unicode, Unicode, Unicode,
+         Unicode, Unicode, Unicode, Unicode, Unicode, Unicode, Unicode,
+         Unicode, Unicode, String)
+    def register(ctx, name, license, author, home_page, content, comment,
+            download_url, platform, description, metadata_version, author_email,
+            md5_digest, filetype, pyversion, summary, version, protcol_version):
         body = ctx.in_body_doc
         #TO-DO Add a method check
-        file = ctx.in_body_doc["content"][0]
-        f = open("hede.zip","w")#str(os.path.join("/workspace/pypi",
-                #str(body["name"][0]),str(body["version"][0]),file.name)),"w")
-        for d in file.data:
-            f.write(d)
-        f.close()
-        package = Package(name=str(body["name"][0]),
-            package_cdate=datetime.date.today,
-            rdf_about = os.path.join("/pypi",str(body["name"][0])),
-            license=str(body["license"][0]),
-            home_page=str(body["home_page"][0])
-        )
+        if str(body[":action"][0]) == "file_upload":
+            file = content
+            f = open("hede.zip","w")#str(os.path.join("/pypi",
+                    #str(body["name"][0]),str(body["version"][0]),file.name)),"w")
+            for d in file.data:
+                f.write(d)
+            f.close()
+            package = Package(package_name=str(name),
+                package_cdate=datetime.date.today(),
+                rdf_about = os.path.join("/pypi",str(name)),
+                package_license=str(license),
+                package_home_page=str(home_page)
+            )
 
-        package.owners.append(Person(person_name=str(body["author"][0]),
-            person_email=str(body["author_email"][0]),
-        )
-        )
+            package.owners.append(Person(person_name=str(author),
+                person_email=str(author_email),
+            ))
 
-        package.releases.append(Release(rdf_about=os.path.join("/pypi",
-                str(body["name"][0]),str(body["version"][0])),
-            version=str(body["version"][0]),
-            description=str(body["description"][0]),
-            meta_version=str(body["metadata_version"][0]),
-            platform=str(body["platform"][0]),
-        )
-        )
-        os.path.join("/pypi",str(body["name"][0]),str(body["version"][0]),file.name)
-        package.releases.distribution.append(Distribution(content_name = file.name,
-            content_path=os.path.join("/pypi",
-                str(body["name"][0]),str(body["version"][0]),file.name),
-            download_url=str(body["download_url"][0]),
-            comment=str(body["comment"][0]),
-            file_type=str(body["filetype"][0]),
-            md5=str(body["md5_digest"][0]),
-            py_version=str(body["pyversion"][0]),
-            summary=str(body["summary"][0]) ,
-            protocol_version=str(body["protocol_version"][0]),
-        )
-        )
+            package.releases.append(Release(rdf_about=os.path.join("/pypi",
+                    str(name),str(version)),
+                release_version=str(version),
+                release_description=str(description),
+                meta_version=str(metadata_version),
+                release_platform=str(platform),
+            )
+            )
+            package.releases[-1].distributions.append(Distribution(content_name = file.name,
+                content_path=os.path.join("/pypi",
+                    str(name),str(version),file.name),
+                dist_download_url=str(download_url),
+                dist_comment=str(comment),
+                dist_file_type=str(filetype),
+                md5=str(md5_digest),
+                py_version=str(pyversion),
+                dist_summary=str(summary) ,
+                protocol_version=str(protcol_version),
+            )
+            )
+            ctx.udc.session.add(package)
+            ctx.udc.session.flush()
+            ctx.udc.session.commit()
