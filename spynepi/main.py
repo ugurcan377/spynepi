@@ -35,8 +35,12 @@ from spyne.protocol.xml import XmlObject
 from spynepi.protocol import SpynePiHttpRpc
 from spynepi.entity.project import RdfService
 from spynepi.entity.root import RootService
+from spynepi.entity.root import Package
+from spynepi.entity.root import Person
+from spynepi.entity.root import Release
+from spynepi.entity.root import Distribution
 
-_user_database = create_engine('sqlite:///:memory:')
+_user_database = create_engine('postgresql://ugurcan:Arskom1986@localhost:5432/test')
 metadata = MetaData(bind=_user_database)
 DeclarativeBase = declarative_base(metadata=metadata)
 Session = sessionmaker(bind=_user_database)
@@ -72,7 +76,10 @@ def main():
     application.event_manager.add_listener('method_return_object', _on_method_return_object)
     
     # configure database
-    metadata.create_all()
+    Package.__table__.create(checkfirst=True)
+    Person.__table__.create(checkfirst=True)
+    Release.__table__.create(checkfirst=True)
+    Distribution.__table__.create(checkfirst=True)
 
     # configure server
     try:

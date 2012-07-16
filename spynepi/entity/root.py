@@ -43,7 +43,8 @@ from spyne.model.primitive import Unicode
 from spyne.model.binary import File
 from spyne.service import ServiceBase
 
-_user_database = create_engine('sqlite:///:memory:')
+from spynepi.const import TABLE_PREFIX
+_user_database = create_engine('postgresql://ugurcan:Arskom1986@localhost:5432/test')
 metadata = MetaData(bind=_user_database)
 DeclarativeBase = declarative_base(metadata=metadata)
 Session = sessionmaker(bind=_user_database)
