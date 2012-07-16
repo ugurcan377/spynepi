@@ -31,27 +31,35 @@ from spynepi.core import Release
 from spynepi.core import Version
 from spynepi.core import Developer
 from spynepi.core import Person
+from spynepi.entity.root import Package
+from spynepi.entity.root import Release
+from spynepi.entity.root import Person
+from spynepi.entity.root import Distribution
 
 class RdfService(ServiceBase):
     @rpc(String, _returns=Project)
     def get_doap(ctx, project_name):
-        return Project(
-            name="ornek",
-            created=datetime.datetime.now(),
-            shortdesc=u"Thanks for all the fish",
-            homepage="",
-            developer=Developer(Person=Person(name="Ugurcan",mbox="")),
-            release=[
-                Release(
+        package = ctx.udc.session.query(Package).filter_by(package_name=project_name).one()
+        release_=[]
+        for rel in package.releases:
+            release_.append( Release(
                     Version=Version(**{
-                        "name": "ornek",
-                         "created": datetime.datetime.now(),
-                         "revision": 3.513,
-                        'file-release': "hubele",
+                        "name": package.package_name,
+                         "created": rel.release_cdate,
+                         "revision": rel.release_version,
+                        'file-release': rel.distributions[0].content_name,
                     }),
 
-                )
-            ])
+                ))
+
+        return Project(
+            name=package.package_name,
+            created=package.package_cdate,
+            shortdesc=package.package_description,
+            homepage=package.package_home_page,
+            developer=Developer(Person=Person(name=package.owners[0].person_name,
+                mbox=package.owners[0].person_email)),
+            release=release_)
 
 
 def _on_method_return_document(ctx):
