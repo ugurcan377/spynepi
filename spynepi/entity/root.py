@@ -114,8 +114,13 @@ class RootService(ServiceBase):
         #TO-DO Add a method check
         if str(body[":action"][0]) == "file_upload":
             file = content
-            f = open("hede.zip","w")#str(os.path.join("/pypi",
-                    #str(body["name"][0]),str(body["version"][0]),file.name)),"w")
+            d = str(os.path.join("files",
+                    str(body["name"][0]),str(body["version"][0])))
+            if os.path.exists(d):
+                f = open(os.path.join(d,file.name),"w")
+            else:
+                os.makedirs(d)
+                f = open(os.path.join(d,file.name),"w")
             for d in file.data:
                 f.write(d)
             f.close()
