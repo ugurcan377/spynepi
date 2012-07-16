@@ -36,7 +36,7 @@ class Version(ComplexModel):
     _type_info = odict([
         ('name', String),
         ('created', Date),
-        ('revision', Float),
+        ('revision', String),
         #ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         #TO-DO Add path#md5 -> rdf:resource as atrribute
         ('file-release', String),
