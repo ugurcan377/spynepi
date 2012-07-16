@@ -1,3 +1,4 @@
+
 # encoding: utf8
 #
 # (C) Copyright Arskom Ltd. <info@arskom.com.tr>
@@ -57,6 +58,7 @@ class Package(TableModel, DeclarativeBase):
     id = Column(sqlalchemy.Integer, primary_key=True)
     package_name = Column(sqlalchemy.String(40))
     package_cdate = Column(sqlalchemy.Date)
+    package_description = Column(sqlalchemy.String(256))
     rdf_about = Column(sqlalchemy.String(256))
     owners = relationship("Person", backref="%s_package" % TABLE_PREFIX)
     package_license = Column(sqlalchemy.String(40))
@@ -78,9 +80,9 @@ class Release(TableModel, DeclarativeBase):
 
     id = Column(sqlalchemy.Integer, primary_key=True)
     package_id = Column(sqlalchemy.Integer, ForeignKey("%s_package.id" % TABLE_PREFIX))
+    release_cdate = Column(sqlalchemy.Date)
     rdf_about = Column(sqlalchemy.String(256))
     release_version = Column(sqlalchemy.String(10))
-    release_description = Column(sqlalchemy.String(256))
     meta_version = Column(sqlalchemy.String(10))
     release_platform = Column(sqlalchemy.String(30))
     distributions = relationship("Distribution", backref="%s_release" % TABLE_PREFIX)
@@ -97,7 +99,7 @@ class Distribution(TableModel, DeclarativeBase):
     dist_download_url = Column(sqlalchemy.String(256))
     dist_comment = Column(sqlalchemy.String(256))
     dist_file_type = Column(sqlalchemy.String(256))
-    dist_md5 = Column(sqlalchemy.String(60))
+    dist_md5 = Column(sqlalchemy.String(256))
     py_version = Column(sqlalchemy.String(10))
     dist_summary = Column(sqlalchemy.String(256))
     protocol_version = Column(sqlalchemy.String(10))
@@ -110,6 +112,7 @@ class RootService(ServiceBase):
     def register(ctx, name, license, author, home_page, content, comment,
             download_url, platform, description, metadata_version, author_email,
             md5_digest, filetype, pyversion, summary, version, protcol_version):
+        print ctx
         body = ctx.in_body_doc
         #TO-DO Add a method check
         if str(body[":action"][0]) == "file_upload":
@@ -121,12 +124,14 @@ class RootService(ServiceBase):
             else:
                 os.makedirs(d)
                 f = open(os.path.join(d,file.name),"w")
+
             for d in file.data:
                 f.write(d)
             f.close()
             package = Package(package_name=str(name),
                 package_cdate=datetime.date.today(),
-                rdf_about = os.path.join("/pypi",str(name)),
+                package_description=description,
+                rdf_about=os.path.join("/pypi",str(name)),
                 package_license=str(license),
                 package_home_page=str(home_page)
             )
@@ -138,7 +143,7 @@ class RootService(ServiceBase):
             package.releases.append(Release(rdf_about=os.path.join("/pypi",
                     str(name),str(version)),
                 release_version=str(version),
-                release_description=str(description),
+                release_cdate=datetime.date.today(),
                 meta_version=str(metadata_version),
                 release_platform=str(platform),
             )
@@ -149,7 +154,7 @@ class RootService(ServiceBase):
                 dist_download_url=str(download_url),
                 dist_comment=str(comment),
                 dist_file_type=str(filetype),
-                md5=str(md5_digest),
+                dist_md5=str(md5_digest),
                 py_version=str(pyversion),
                 dist_summary=str(summary) ,
                 protocol_version=str(protcol_version),
