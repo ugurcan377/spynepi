@@ -31,7 +31,8 @@ from sqlalchemy import create_engine
 from sqlalchemy import ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref
 
 from sqlalchemy import MetaData
 from sqlalchemy import Column
@@ -44,62 +45,62 @@ from spyne.model.binary import File
 from spyne.service import ServiceBase
 
 from spynepi.const import TABLE_PREFIX
+
 _user_database = create_engine('postgresql://ugurcan:Arskom1986@localhost:5432/test')
 metadata = MetaData(bind=_user_database)
 DeclarativeBase = declarative_base(metadata=metadata)
 Session = sessionmaker(bind=_user_database)
 
-
 class Package(TableModel, DeclarativeBase):
-    __tablename__ = "Package"
+    __tablename__ = "%s_package"  % TABLE_PREFIX
 
     id = Column(sqlalchemy.Integer, primary_key=True)
     package_name = Column(sqlalchemy.String(40))
     package_cdate = Column(sqlalchemy.Date)
     rdf_about = Column(sqlalchemy.String(256))
-    owners = relationship("Person", backref="Package")
-    license = Column(sqlalchemy.String(40))
-    home_page = Column(sqlalchemy.String(256))
-    releases = relationship("Release", backref="Package")
+    owners = relationship("Person", backref="%s_package" % TABLE_PREFIX)
+    package_license = Column(sqlalchemy.String(40))
+    package_home_page = Column(sqlalchemy.String(256))
+    releases = relationship("Release", backref="%s_package" % TABLE_PREFIX)
 
 
 class Person(TableModel, DeclarativeBase):
-    __tablename__ = "Person"
+    __tablename__ = "%s_person"  % TABLE_PREFIX
 
     id = Column(sqlalchemy.Integer, primary_key=True)
     person_name = Column(sqlalchemy.String(60))
     person_email = Column(sqlalchemy.String(60))
-    package_id = Column(sqlalchemy.Integer, ForeignKey("Package.id"))
+    package_id = Column(sqlalchemy.Integer, ForeignKey("%s_package.id" % TABLE_PREFIX))
 
 
 class Release(TableModel, DeclarativeBase):
-    __tablename__ = "Release"
+    __tablename__ = "%s_release"  % TABLE_PREFIX
 
     id = Column(sqlalchemy.Integer, primary_key=True)
-    package_id = Column(sqlalchemy.Integer, ForeignKey("Package.id"))
+    package_id = Column(sqlalchemy.Integer, ForeignKey("%s_package.id" % TABLE_PREFIX))
     rdf_about = Column(sqlalchemy.String(256))
-    version = Column(sqlalchemy.Float)
-    description = Column(sqlalchemy.String(256))
-    meta_version = Column(sqlalchemy.Float)
-    platform = Column(sqlalchemy.String(30))
-    distribution = relationship("Distribution", backref="Release")
+    release_version = Column(sqlalchemy.String(10))
+    release_description = Column(sqlalchemy.String(256))
+    meta_version = Column(sqlalchemy.String(10))
+    release_platform = Column(sqlalchemy.String(30))
+    distributions = relationship("Distribution", backref="%s_release" % TABLE_PREFIX)
 
 
 class Distribution(TableModel, DeclarativeBase):
-    __tablename__ = "Distribution"
+    __tablename__ = "%s_distribution"  % TABLE_PREFIX
 
     id = Column(sqlalchemy.Integer, primary_key=True)
-    release_id = Column(sqlalchemy.Integer, ForeignKey("Release.id"))
+    release_id = Column(sqlalchemy.Integer, ForeignKey("%s_release.id" % TABLE_PREFIX))
     # TO-DO Add Content data
     content_name = Column(sqlalchemy.String(256))
     content_path = Column(sqlalchemy.String(256))
-    download_url = Column(sqlalchemy.String(256))
-    comment = Column(sqlalchemy.String(256))
-    file_type = Column(sqlalchemy.String(256))
-    md5 = Column(sqlalchemy.String(60))
-    py_version = Column(sqlalchemy.Float)
-    summary = Column(sqlalchemy.String(256))
-    protocol_version = Column(sqlalchemy.Float)
+    dist_download_url = Column(sqlalchemy.String(256))
+    dist_comment = Column(sqlalchemy.String(256))
+    dist_file_type = Column(sqlalchemy.String(256))
+    dist_md5 = Column(sqlalchemy.String(60))
+    py_version = Column(sqlalchemy.String(10))
+    dist_summary = Column(sqlalchemy.String(256))
+    protocol_version = Column(sqlalchemy.String(10))
 
 
 class RootService(ServiceBase):
