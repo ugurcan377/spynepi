@@ -144,6 +144,7 @@ class RootService(ServiceBase):
                     str(name),str(version)),
                 release_version=str(version),
                 release_cdate=datetime.date.today(),
+                release_summary=str(summary) ,
                 meta_version=str(metadata_version),
                 release_platform=str(platform),
             )
@@ -156,7 +157,6 @@ class RootService(ServiceBase):
                 dist_file_type=str(filetype),
                 dist_md5=str(md5_digest),
                 py_version=str(pyversion),
-                dist_summary=str(summary) ,
                 protocol_version=str(protcol_version),
             )
             )
