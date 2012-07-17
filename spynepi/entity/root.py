@@ -112,35 +112,22 @@ class RootService(ServiceBase):
     def register(ctx, name, license, author, home_page, content, comment,
             download_url, platform, description, metadata_version, author_email,
             md5_digest, filetype, pyversion, summary, version, protcol_version):
-        print ctx
-        body = ctx.in_body_doc
-        #TO-DO Add a method check
-        if str(body[":action"][0]) == "file_upload":
-            file = content
-            d = str(os.path.join("files",
-                    str(body["name"][0]),str(body["version"][0])))
-            if os.path.exists(d):
-                f = open(os.path.join(d,file.name),"w")
-            else:
-                os.makedirs(d)
-                f = open(os.path.join(d,file.name),"w")
+        def generate_package():
+            return Package(package_name=str(name),
+                           package_cdate=datetime.date.today(),
+                           package_description=description,
+                           rdf_about=os.path.join("/pypi", str(name)),
+                           package_license=str(license),
+                           package_home_page=str(home_page)
+                           )
 
-            for d in file.data:
-                f.write(d)
-            f.close()
-            package = Package(package_name=str(name),
-                package_cdate=datetime.date.today(),
-                package_description=description,
-                rdf_about=os.path.join("/pypi",str(name)),
-                package_license=str(license),
-                package_home_page=str(home_page)
+        def generate_person():
+            return Person(person_name=str(author),
+                person_email=str(author_email),
             )
 
-            package.owners.append(Person(person_name=str(author),
-                person_email=str(author_email),
-            ))
-
-            package.releases.append(Release(rdf_about=os.path.join("/pypi",
+        def generate_release():
+            return Release(rdf_about=os.path.join("/pypi",
                     str(name),str(version)),
                 release_version=str(version),
                 release_cdate=datetime.date.today(),
@@ -148,10 +135,10 @@ class RootService(ServiceBase):
                 meta_version=str(metadata_version),
                 release_platform=str(platform),
             )
-            )
-            package.releases[-1].distributions.append(Distribution(content_name = file.name,
-                content_path=os.path.join("/pypi",
-                    str(name),str(version),file.name),
+
+        def generate_dist():
+            return Distribution(content_name=content.name,
+                content_path=pth,
                 dist_download_url=str(download_url),
                 dist_comment=str(comment),
                 dist_file_type=str(filetype),
@@ -159,7 +146,17 @@ class RootService(ServiceBase):
                 py_version=str(pyversion),
                 protocol_version=str(protcol_version),
             )
-            )
-            ctx.udc.session.add(package)
-            ctx.udc.session.flush()
+
+        def package_content():
+            file = content
+
+            if os.path.exists(pth):
+                f = open(os.path.join(d,file.name),"w")
+            else:
+                os.makedirs(pth)
+                f = open(os.path.join(d,file.name),"w")
+
+            for d in file.data:
+                f.write(d)
+            f.close()
             ctx.udc.session.commit()
