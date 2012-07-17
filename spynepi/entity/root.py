@@ -20,6 +20,7 @@
 # MA 02110-1301, USA.
 #
 
+from spyne.error import ArgumentError
 import datetime
 import os
 
@@ -28,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 import sqlalchemy
 
+from sqlalchemy import sql
 from sqlalchemy import create_engine
 from sqlalchemy import ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
@@ -112,6 +114,8 @@ class RootService(ServiceBase):
     def register(ctx, name, license, author, home_page, content, comment,
             download_url, platform, description, metadata_version, author_email,
             md5_digest, filetype, pyversion, summary, version, protcol_version):
+        exists = False
+        pth = str(os.path.join("files",str(name),str(version)))
         def generate_package():
             return Package(package_name=str(name),
                            package_cdate=datetime.date.today(),
@@ -159,4 +163,38 @@ class RootService(ServiceBase):
             for d in file.data:
                 f.write(d)
             f.close()
+
+        body = ctx.in_body_doc
+        #TO-DO Add a method check
+        check = ctx.udc.session.query(Package).filter_by(package_name=name).all()
+        if check != []:
+            exists = True
+            for rel in check[0].releases:
+                if rel.release_version == version and os.path.exists(pth) == True:
+                    raise(ArgumentError)
+
+        if str(body[":action"][0]) == "submit":
+            if exists:
+                check[0].releases.append(generate_release())
+            else:
+                package = generate_package()
+                package.releases.append(generate_release())
+                ctx.udc.session.add(package)
+                ctx.udc.session.flush()
+            ctx.udc.session.commit()
+
+        if str(body[":action"][0]) == "file_upload":
+            if exists:
+                rel = ctx.udc.session.query(Release).join(Package).filter(sql.and_
+                    (Package.package_name == "ornek",
+                    Release.release_version == "0.1.0")).all()
+                rel[0].distributions.append(generate_dist())
+            else:
+                package = generate_package()
+                package.owners.append()
+                package.releases.append(generate_release())
+                package_content()
+                package.releases[-1].distributions.append(generate_dist())
+                ctx.udc.session.add(package)
+                ctx.udc.session.flush()
             ctx.udc.session.commit()
