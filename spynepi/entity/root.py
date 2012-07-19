@@ -186,8 +186,8 @@ class RootService(ServiceBase):
         if body[":action"][0] == "file_upload":
             if exists:
                 rel = ctx.udc.session.query(Release).join(Package).filter(sql.and_
-                    (Package.package_name == "ornek",
-                    Release.release_version == "0.1.0")).all()
+                    (Package.package_name == name,
+                    Release.release_version == version)).all()
                 rel[0].distributions.append(generate_dist())
             else:
                 package = generate_package()
