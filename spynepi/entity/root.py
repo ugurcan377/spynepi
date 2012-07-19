@@ -115,40 +115,40 @@ class RootService(ServiceBase):
             download_url, platform, description, metadata_version, author_email,
             md5_digest, filetype, pyversion, summary, version, protcol_version):
         exists = False
-        pth = str(os.path.join("files",str(name),str(version)))
+        pth = os.path.join("files",name,version)
         def generate_package():
-            return Package(package_name=str(name),
+            return Package(package_name=name,
                            package_cdate=datetime.date.today(),
                            package_description=description,
-                           rdf_about=os.path.join("/pypi", str(name)),
-                           package_license=str(license),
-                           package_home_page=str(home_page)
+                           rdf_about=os.path.join("/pypi", name),
+                           package_license=license,
+                           package_home_page=home_page
                            )
 
         def generate_person():
-            return Person(person_name=str(author),
-                person_email=str(author_email),
+            return Person(person_name=author,
+                person_email=author_email,
             )
 
         def generate_release():
             return Release(rdf_about=os.path.join("/pypi",
-                    str(name),str(version)),
-                release_version=str(version),
+                    name,version),
+                release_version=version,
                 release_cdate=datetime.date.today(),
-                release_summary=str(summary) ,
-                meta_version=str(metadata_version),
-                release_platform=str(platform),
+                release_summary=summary ,
+                meta_version=metadata_version,
+                release_platform=platform,
             )
 
         def generate_dist():
             return Distribution(content_name=content.name,
                 content_path=pth,
-                dist_download_url=str(download_url),
-                dist_comment=str(comment),
-                dist_file_type=str(filetype),
-                dist_md5=str(md5_digest),
-                py_version=str(pyversion),
-                protocol_version=str(protcol_version),
+                dist_download_url=download_url,
+                dist_comment=comment,
+                dist_file_type=filetype,
+                dist_md5=md5_digest,
+                py_version=pyversion,
+                protocol_version=protcol_version,
             )
 
         def package_content():
@@ -173,7 +173,7 @@ class RootService(ServiceBase):
                 if rel.release_version == version and os.path.exists(pth) == True:
                     raise(ArgumentError)
 
-        if str(body[":action"][0]) == "submit":
+        if body[":action"][0] == "submit":
             if exists:
                 check[0].releases.append(generate_release())
             else:
@@ -183,7 +183,7 @@ class RootService(ServiceBase):
                 ctx.udc.session.flush()
             ctx.udc.session.commit()
 
-        if str(body[":action"][0]) == "file_upload":
+        if body[":action"][0] == "file_upload":
             if exists:
                 rel = ctx.udc.session.query(Release).join(Package).filter(sql.and_
                     (Package.package_name == "ornek",
