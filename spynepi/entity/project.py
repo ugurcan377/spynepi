@@ -42,13 +42,15 @@ class RdfService(ServiceBase):
         package = ctx.udc.session.query(Package).filter_by(package_name=project_name).one()
         release_=[]
         for rel in package.releases:
-            release_.append( Release(
+            release_.append( Release(about=rel.rdf_about,
                     Version=Version(**{
                         "name": package.package_name,
                          "created": rel.release_cdate,
                          "revision": rel.release_version,
-                        'file-release': rel.distributions[0].content_name,
-                    }),
+                        'file-release': (rel.distributions[0].content_name),
+                        "resource": rel.distributions[0].content_path+"#"
+                            +rel.distributions[0].dist_md5
+                    })
 
                 ))
 
