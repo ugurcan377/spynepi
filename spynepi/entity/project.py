@@ -19,6 +19,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
 #
+
+import os
+
 import datetime
 from lxml import etree
 
@@ -55,6 +58,7 @@ class RdfService(ServiceBase):
                 ))
 
         return Project(
+            about=os.path.join("/pypi",package.package_name),
             name=package.package_name,
             created=package.package_cdate,
             shortdesc=package.package_description,
@@ -63,3 +67,10 @@ class RdfService(ServiceBase):
                 mbox=package.owners[0].person_email)),
             release=release_)
 
+
+def _on_method_return_document(ctx):
+    ctx.out_document = ctx.out_document[0]
+    ctx.out_document.tag = "{http://usefulinc.com/ns/doap#}Project"
+
+
+RdfService.event_manager.add_listener('method_return_document', _on_method_return_document)
