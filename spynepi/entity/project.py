@@ -25,8 +25,12 @@ import os
 import datetime
 from lxml import etree
 
+from werkzeug.routing import Rule
+
 from spyne.decorator import rpc
-from spyne.model.primitive import String
+from spyne.model.primitive import Unicode
+from spyne.model.primitive import Integer
+from spyne.model.primitive import Float
 from spyne.service import ServiceBase
 
 from spynepi.core import Project
@@ -40,8 +44,11 @@ from spynepi.entity.root import Person
 from spynepi.entity.root import Distribution
 
 class RdfService(ServiceBase):
-    @rpc(String, _returns=Project)
-    def get_doap(ctx, project_name):
+    @rpc(Unicode, Unicode, _returns=Project, _http_routes=[
+            Rule("/<string:project_name>/<string:version>"),
+            Rule("/<string:project_name>")
+        ])
+    def get_doap(ctx, project_name, version):
         package = ctx.udc.session.query(Package).filter_by(package_name=project_name).one()
         release_=[]
         for rel in package.releases:
