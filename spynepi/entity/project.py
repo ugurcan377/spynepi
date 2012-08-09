@@ -59,7 +59,7 @@ class RdfService(ServiceBase):
                 ))
 
         return Project(
-            about=os.path.join("/pypi",package.package_name),
+            about=os.path.join("/",package.package_name),
             name=package.package_name,
             created=package.package_cdate,
             shortdesc=package.package_description,

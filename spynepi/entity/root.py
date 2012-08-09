@@ -120,7 +120,7 @@ class RootService(ServiceBase):
             return Package(package_name=name,
                            package_cdate=datetime.date.today(),
                            package_description=description,
-                           rdf_about=os.path.join("/pypi", name),
+                           rdf_about=os.path.join("/", name),
                            package_license=license,
                            package_home_page=home_page
                            )
@@ -131,7 +131,7 @@ class RootService(ServiceBase):
             )
 
         def generate_release():
-            return Release(rdf_about=os.path.join("/pypi",
+            return Release(rdf_about=os.path.join("/",
                     name,version),
                 release_version=version,
                 release_cdate=datetime.date.today(),
