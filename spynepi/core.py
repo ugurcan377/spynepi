@@ -93,6 +93,4 @@ class Project(ComplexModel):
         ('release', Release.customize(max_occurs=float('inf'))),
     ])
 
-import datetime
-
 
