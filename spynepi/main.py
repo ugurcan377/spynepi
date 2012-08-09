@@ -31,8 +31,11 @@ from sqlalchemy import MetaData
 from spyne.application import Application
 from spyne.server.wsgi import WsgiApplication
 from spyne.protocol.xml import XmlObject
+from spyne.protocol.html import HtmlTable
 
+from spynepi.protocol import HttpRpc
 from spynepi.protocol import SpynePiHttpRpc
+from spynepi.entity.html import IndexService
 from spynepi.entity.project import RdfService
 from spynepi.entity.root import RootService
 from spynepi.entity.root import Package
@@ -69,8 +72,8 @@ def main():
     # configure application
     #application = Application([UserManagerService], 'spyne.examples.user_manager',
     #            interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
-    application = Application([RdfService,RootService],"http://usefulinc.com/ns/doap#",
-                                in_protocol=SpynePiHttpRpc(), out_protocol=XmlObject())
+    application = Application([RdfService,RootService,IndexService],"http://usefulinc.com/ns/doap#",
+                                in_protocol=HttpRpc(), out_protocol=HtmlTable())
 
     application.event_manager.add_listener('method_call', _on_method_call)
     application.event_manager.add_listener('method_return_object', _on_method_return_object)
