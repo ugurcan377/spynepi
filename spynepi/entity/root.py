@@ -86,6 +86,7 @@ class Release(TableModel, DeclarativeBase):
     rdf_about = Column(sqlalchemy.String(256))
     release_version = Column(sqlalchemy.String(10))
     meta_version = Column(sqlalchemy.String(10))
+    release_summary = Column(sqlalchemy.String(256))
     release_platform = Column(sqlalchemy.String(30))
     distributions = relationship("Distribution", backref="%s_release" % TABLE_PREFIX)
 
@@ -103,7 +104,6 @@ class Distribution(TableModel, DeclarativeBase):
     dist_file_type = Column(sqlalchemy.String(256))
     dist_md5 = Column(sqlalchemy.String(256))
     py_version = Column(sqlalchemy.String(10))
-    dist_summary = Column(sqlalchemy.String(256))
     protocol_version = Column(sqlalchemy.String(10))
 
 
