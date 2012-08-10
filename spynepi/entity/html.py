@@ -20,6 +20,9 @@
 #
 
 import datetime
+import os
+
+from lxml import html
 
 from werkzeug.routing import Rule
 
@@ -30,6 +33,7 @@ from spyne.model.primitive import AnyUri
 from spyne.model.primitive import UriValue
 from spyne.model.primitive import Float
 from spyne.model.complex import Array
+from spyne.protocol.html import HtmlPage
 from spyne.service import ServiceBase
 
 from spynepi.core import Project
@@ -57,3 +61,41 @@ class IndexService(ServiceBase):
             ))
 
         return idx
+
+
+class HtmlService(ServiceBase):
+    @rpc(Unicode, Unicode,_returns=Unicode, _http_routes=[
+            Rule("/<string:project_name>/<string:version>"),
+            Rule("/<string:project_name>")
+        ])
+    def download_html(ctx,project_name,version):
+        ctx.transport.mime_type = "text/html"
+
+        if not version:
+            package = ctx.udc.session.query(Package).filter_by(
+                                            package_name=project_name).one()
+
+            download = HtmlPage("template/download.html")
+            download.title = project_name
+            download.link.attrib["href"] = os.path.join(package.releases[-1].rdf_about,"doap.rdf")
+            download.h1 = project_name
+            download.a = package.releases[-1].distributions[0].content_name
+            download.a.attrib["href"] = os.path.join(package.releases[-1].distributions[0].content_path,
+                package.releases[-1].distributions[0].content_name
+                + "#" + package.releases[-1].distributions[0].dist_md5)
+        else:
+            hede = ctx.udc.session.query(Package,Release).\
+            filter(Package.package_name==project_name).\
+            filter(Release.release_version==version).\
+            filter(Package.id==Release.package_id).all()
+            pack,ver = hede[0]
+            download = HtmlPage("template/download.html")
+            download.title = project_name
+            download.link.attrib["href"] = os.path.join(ver.rdf_about,"doap.rdf")
+            download.h1 = project_name+"-"+version
+            download.a = ver.distributions[0].content_name
+            download.a.attrib["href"] = os.path.join(ver.distributions[0].content_path,
+                ver.distributions[0].content_name
+                + "#" + ver.distributions[0].dist_md5)
+
+        return html.tostring(download.html)
