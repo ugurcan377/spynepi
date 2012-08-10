@@ -45,8 +45,8 @@ from spynepi.entity.root import Distribution
 
 class RdfService(ServiceBase):
     @rpc(Unicode, Unicode, _returns=Project, _http_routes=[
-            Rule("/<string:project_name>/<string:version>"),
-            Rule("/<string:project_name>")
+            Rule("/<string:project_name>/<string:version>/doap.rdf"),
+            Rule("/<string:project_name>/doap.rdf")
         ])
     def get_doap(ctx, project_name, version):
         package = ctx.udc.session.query(Package).filter_by(package_name=project_name).one()
