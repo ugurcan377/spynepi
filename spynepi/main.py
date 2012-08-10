@@ -32,10 +32,12 @@ from spyne.application import Application
 from spyne.server.wsgi import WsgiApplication
 from spyne.protocol.xml import XmlObject
 from spyne.protocol.html import HtmlTable
+from spyne.protocol.html import HtmlPage
 
 from spynepi.protocol import HttpRpc
 from spynepi.protocol import SpynePiHttpRpc
 from spynepi.entity.html import IndexService
+from spynepi.entity.html import HtmlService
 from spynepi.entity.project import RdfService
 from spynepi.entity.root import RootService
 from spynepi.entity.root import Package
@@ -80,20 +82,30 @@ def main():
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
     logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
+    application = Application([RootService,IndexService],"http://usefulinc.com/ns/doap#",
     # configure application
     #application = Application([UserManagerService], 'spyne.examples.user_manager',
     #            interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
     application = Application([RdfService,RootService,IndexService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HtmlTable())
+    application1 = Application([RdfService],"http://usefulinc.com/ns/doap#",
+                                in_protocol=HttpRpc(), out_protocol=XmlObject())
+    application2 = Application([HtmlService],"http://usefulinc.com/ns/doap#",
+                                in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
     application.event_manager.add_listener('method_call', _on_method_call)
     application.event_manager.add_listener('method_return_object', _on_method_return_object)
+    application1.event_manager.add_listener('method_call', _on_method_call)
+    application1.event_manager.add_listener('method_return_object', _on_method_return_object)
+    application2.event_manager.add_listener('method_call', _on_method_call)
+    application2.event_manager.add_listener('method_return_object', _on_method_return_object)
 
     # configure database
     Package.__table__.create(checkfirst=True)
     Person.__table__.create(checkfirst=True)
     Release.__table__.create(checkfirst=True)
     Distribution.__table__.create(checkfirst=True)
+
 
     # configure server
     try:
@@ -102,6 +114,8 @@ def main():
         print "Error: example server code requires Python >= 2.5"
 
     wsgi_app = WsgiApplication(application)
+    wsgi_app1 = WsgiApplication(application1)
+    wsgi_app2 = WsgiApplication(application2)
     host = '0.0.0.0'
     server = make_server(host, 7789, TWsgiApplication(url_map))
 
