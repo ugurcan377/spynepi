@@ -62,7 +62,7 @@ def _on_method_return_object(ctx):
     ctx.udc.session.commit()
     ctx.udc.session.close()
 
-def TWsgiApplication(url_map)
+def TWsgiApplication(url_map):
     def _application(environ, start_response, wsgi_url=None):
         urls = url_map.bind_to_environ(environ)
         try:
