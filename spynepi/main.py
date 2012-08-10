@@ -62,6 +62,17 @@ def _on_method_return_object(ctx):
     ctx.udc.session.commit()
     ctx.udc.session.close()
 
+def TWsgiApplication(url_map)
+    def _application(environ, start_response, wsgi_url=None):
+        urls = url_map.bind_to_environ(environ)
+        try:
+            endpoint, args = urls.match()
+        except HTTPException, e:
+            return e(environ, start_response)
+
+        return endpoint(environ, start_response, wsgi_url)
+
+    return _application
 
 def main():
     # configure logging
@@ -77,7 +88,7 @@ def main():
 
     application.event_manager.add_listener('method_call', _on_method_call)
     application.event_manager.add_listener('method_return_object', _on_method_return_object)
-    
+
     # configure database
     Package.__table__.create(checkfirst=True)
     Person.__table__.create(checkfirst=True)
@@ -92,7 +103,7 @@ def main():
 
     wsgi_app = WsgiApplication(application)
     host = '0.0.0.0'
-    server = make_server(host, 7789, wsgi_app)
+    server = make_server(host, 7789, TWsgiApplication(url_map))
 
     # start server
     logger.info("listening to http://%s:7789" % host)
