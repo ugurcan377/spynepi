@@ -49,6 +49,8 @@ from spyne.service import ServiceBase
 
 from spynepi.const import TABLE_PREFIX
 
+from werkzeug.routing import Rule
+
 _user_database = create_engine('postgresql://ugurcan:Arskom1986@localhost:5432/test')
 metadata = MetaData(bind=_user_database)
 DeclarativeBase = declarative_base(metadata=metadata)
@@ -110,7 +112,7 @@ class Distribution(TableModel, DeclarativeBase):
 class RootService(ServiceBase):
     @rpc(Unicode, Unicode, Unicode, Unicode, File, Unicode, Unicode, Unicode,
          Unicode, Unicode, Unicode, Unicode, Unicode, Unicode, Unicode,
-         Unicode, Unicode, String)
+         Unicode, Unicode, String, _http_routes=[Rule("/",methods=["POST"])] )
     def register(ctx, name, license, author, home_page, content, comment,
             download_url, platform, description, metadata_version, author_email,
             md5_digest, filetype, pyversion, summary, version, protcol_version):
