@@ -45,6 +45,8 @@ from spynepi.entity.root import Person
 from spynepi.entity.root import Release
 from spynepi.entity.root import Distribution
 
+from werkzeug.exceptions import HTTPException
+from werkzeug.routing import Map,Rule
 _user_database = create_engine('postgresql://ugurcan:Arskom1986@localhost:5432/test')
 metadata = MetaData(bind=_user_database)
 DeclarativeBase = declarative_base(metadata=metadata)
@@ -116,6 +118,13 @@ def main():
     wsgi_app = WsgiApplication(application)
     wsgi_app1 = WsgiApplication(application1)
     wsgi_app2 = WsgiApplication(application2)
+    url_map = Map([Rule("/", endpoint=wsgi_app),
+        Rule("/<string:project_name>/<string:version>/doap.rdf",endpoint=wsgi_app1),
+        Rule("/<string:project_name>/doap.rdf",endpoint=wsgi_app1),
+        Rule("/<string:project_name>/<string:version>", endpoint=wsgi_app2),
+        Rule("/<string:project_name>", endpoint=wsgi_app2),
+        ])
+
     host = '0.0.0.0'
     server = make_server(host, 7789, TWsgiApplication(url_map))
 
