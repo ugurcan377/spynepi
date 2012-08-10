@@ -25,7 +25,7 @@ setup(
 
     entry_points = {
         'console_scripts': [
-            '%(p)s=%(p)s.main:main' % {'p': PROJECT_NAME},
+            '%(p)s_daemon=%(p)s.main:main' % {'p': PROJECT_NAME},
         ]
     },
 )
