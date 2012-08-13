@@ -82,9 +82,9 @@ class HtmlService(ServiceBase):
             download.link.attrib["href"] = os.path.join(ver.rdf_about,"doap.rdf")
             download.h1 = project_name+"-"+version
             download.a = ver.distributions[0].content_name
-            download.a.attrib["href"] = os.path.join(ver.distributions[0].content_path,
+            download.a.attrib["href"] = os.path.join("/",ver.distributions[0].content_path,
                 ver.distributions[0].content_name
-                + "#" + ver.distributions[0].dist_md5)
+                + "#md5=" + ver.distributions[0].dist_md5)
         else:
             package = ctx.udc.session.query(Package).filter_by(
                                             package_name=project_name).one()
