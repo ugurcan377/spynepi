@@ -84,23 +84,19 @@ def main():
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
     logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
-    application = Application([RootService,IndexService],"http://usefulinc.com/ns/doap#",
-    # configure application
-    #application = Application([UserManagerService], 'spyne.examples.user_manager',
-    #            interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
-    application = Application([RdfService,RootService,IndexService],"http://usefulinc.com/ns/doap#",
+    index_app = Application([RootService,IndexService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HtmlTable())
-    application1 = Application([RdfService],"http://usefulinc.com/ns/doap#",
+    rdf_app = Application([RdfService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=XmlObject())
-    application2 = Application([HtmlService],"http://usefulinc.com/ns/doap#",
+    html_app = Application([HtmlService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
-    application.event_manager.add_listener('method_call', _on_method_call)
-    application.event_manager.add_listener('method_return_object', _on_method_return_object)
-    application1.event_manager.add_listener('method_call', _on_method_call)
-    application1.event_manager.add_listener('method_return_object', _on_method_return_object)
-    application2.event_manager.add_listener('method_call', _on_method_call)
-    application2.event_manager.add_listener('method_return_object', _on_method_return_object)
+    index_app.event_manager.add_listener('method_call', _on_method_call)
+    index_app.event_manager.add_listener('method_return_object', _on_method_return_object)
+    rdf_app.event_manager.add_listener('method_call', _on_method_call)
+    rdf_app.event_manager.add_listener('method_return_object', _on_method_return_object)
+    html_app.event_manager.add_listener('method_call', _on_method_call)
+    html_app.event_manager.add_listener('method_return_object', _on_method_return_object)
 
     # configure database
     Package.__table__.create(checkfirst=True)
@@ -115,14 +111,18 @@ def main():
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
 
-    wsgi_app = WsgiApplication(application)
-    wsgi_app1 = WsgiApplication(application1)
-    wsgi_app2 = WsgiApplication(application2)
-    url_map = Map([Rule("/", endpoint=wsgi_app),
-        Rule("/<string:project_name>/<string:version>/doap.rdf",endpoint=wsgi_app1),
-        Rule("/<string:project_name>/doap.rdf",endpoint=wsgi_app1),
-        Rule("/<string:project_name>/<string:version>", endpoint=wsgi_app2),
-        Rule("/<string:project_name>", endpoint=wsgi_app2),
+    wsgi_index = WsgiApplication(index_app)
+    wsgi_rdf = WsgiApplication(rdf_app)
+    wsgi_html = WsgiApplication(html_app)
+    url_map = Map([Rule("/", endpoint=wsgi_index),
+        Rule("/<string:project_name>/<string:version>/doap.rdf",endpoint=wsgi_rdf),
+        Rule("/<string:project_name>/doap.rdf",endpoint=wsgi_rdf),
+        Rule("/<string:project_name>/<string:version>/", endpoint=wsgi_html),
+        Rule("/<string:project_name>/<string:version>", endpoint=wsgi_html),
+        Rule("/<string:project_name>/", endpoint=wsgi_html),
+        Rule("/<string:project_name>", endpoint=wsgi_html),
+        Rule("/files/<string:project_name>/<string:version>/<string:download>",
+                endpoint=wsgi_html),
         ])
 
     host = '0.0.0.0'
