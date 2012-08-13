@@ -27,6 +27,7 @@ from lxml import html
 from werkzeug.routing import Rule
 
 from spyne.decorator import rpc
+from spyne.error import RequestForbidden
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import Integer
 from spyne.model.primitive import AnyUri
@@ -99,14 +100,16 @@ class HtmlService(ServiceBase):
             download.a.attrib["href"] = os.path.join("/",package.releases[-1].distributions[0].content_path,
                 package.releases[-1].distributions[0].content_name
                 + "#md5=" + package.releases[-1].distributions[0].dist_md5)
-        
-
 
         return html.tostring(download.html)
 
     @rpc(Unicode, Unicode, Unicode, _returns=File, _http_routes=[
-            Rule("/files/<string:project_name>/<string:version>/<string:download>")])
-    def download_file(ctx,project_name,version,download):
-        pth = os.path.join(os.getcwd(),"files",project_name,version,download)
-
-        return File(name=download, type="application/x-tar", path=pth)
+            Rule("/files/<string:project_name>/<string:version>/<string:file_name>")])
+    def download_file(ctx, project_name, version, file_name):
+        repository_path = os.path.abspath("files")
+        file_path = os.path.join(repository_path, project_name, version, file_name)
+        file_path = os.path.abspath(file_path)
+        if not file_path.startswith(repository_path):
+            # This request tried to read arbitrary data from the filesystem
+            raise RequestForbidden(repr([project_name, version, file_name]))
+        return File(name=file_name, path=file_path)
