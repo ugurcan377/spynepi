@@ -71,19 +71,7 @@ class HtmlService(ServiceBase):
     def download_html(ctx,project_name,version):
         ctx.transport.mime_type = "text/html"
 
-        if not version:
-            package = ctx.udc.session.query(Package).filter_by(
-                                            package_name=project_name).one()
-
-            download = HtmlPage("template/download.html")
-            download.title = project_name
-            download.link.attrib["href"] = os.path.join(package.releases[-1].rdf_about,"doap.rdf")
-            download.h1 = project_name
-            download.a = package.releases[-1].distributions[0].content_name
-            download.a.attrib["href"] = os.path.join(package.releases[-1].distributions[0].content_path,
-                package.releases[-1].distributions[0].content_name
-                + "#" + package.releases[-1].distributions[0].dist_md5)
-        else:
+        if version:
             hede = ctx.udc.session.query(Package,Release).\
             filter(Package.package_name==project_name).\
             filter(Release.release_version==version).\
@@ -97,5 +85,19 @@ class HtmlService(ServiceBase):
             download.a.attrib["href"] = os.path.join(ver.distributions[0].content_path,
                 ver.distributions[0].content_name
                 + "#" + ver.distributions[0].dist_md5)
+        else:
+            package = ctx.udc.session.query(Package).filter_by(
+                                            package_name=project_name).one()
+
+            download = HtmlPage("template/download.html")
+            download.title = project_name
+            download.link.attrib["href"] = os.path.join(package.releases[-1].rdf_about,"doap.rdf")
+            download.h1 = project_name
+            download.a = package.releases[-1].distributions[0].content_name
+            download.a.attrib["href"] = os.path.join("/",package.releases[-1].distributions[0].content_path,
+                package.releases[-1].distributions[0].content_name
+                + "#md5=" + package.releases[-1].distributions[0].dist_md5)
+        
+
 
         return html.tostring(download.html)
