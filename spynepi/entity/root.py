@@ -157,10 +157,10 @@ class RootService(ServiceBase):
             file = content
 
             if os.path.exists(pth):
-                f = open(os.path.join(d,file.name),"w")
+                f = open(os.path.join(pth,file.name),"w")
             else:
                 os.makedirs(pth)
-                f = open(os.path.join(d,file.name),"w")
+                f = open(os.path.join(pth,file.name),"w")
 
             for d in file.data:
                 f.write(d)
@@ -180,6 +180,7 @@ class RootService(ServiceBase):
                 check[0].releases.append(generate_release())
             else:
                 package = generate_package()
+                package.owners.append(generate_person())
                 package.releases.append(generate_release())
                 ctx.udc.session.add(package)
                 ctx.udc.session.flush()
@@ -191,9 +192,10 @@ class RootService(ServiceBase):
                     (Package.package_name == name,
                     Release.release_version == version)).all()
                 rel[0].distributions.append(generate_dist())
+                package_content()
             else:
                 package = generate_package()
-                package.owners.append()
+                package.owners.append(generate_person())
                 package.releases.append(generate_release())
                 package_content()
                 package.releases[-1].distributions.append(generate_dist())
