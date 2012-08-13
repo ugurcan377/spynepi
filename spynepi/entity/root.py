@@ -155,7 +155,7 @@ class RootService(ServiceBase):
 
         def package_content():
             file = content
-
+            pth = os.path.abspath(pth)
             if os.path.exists(pth):
                 f = open(os.path.join(pth,file.name),"w")
             else:
