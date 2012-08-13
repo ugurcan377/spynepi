@@ -33,6 +33,7 @@ from spyne.model.primitive import AnyUri
 from spyne.model.primitive import UriValue
 from spyne.model.primitive import Float
 from spyne.model.complex import Array
+from spyne.model.binary import File
 from spyne.protocol.html import HtmlPage
 from spyne.service import ServiceBase
 
@@ -72,7 +73,6 @@ class HtmlService(ServiceBase):
         ])
     def download_html(ctx,project_name,version):
         ctx.transport.mime_type = "text/html"
-
         if version:
             hede = ctx.udc.session.query(Package,Release).\
             filter(Package.package_name==project_name).\
@@ -103,3 +103,10 @@ class HtmlService(ServiceBase):
 
 
         return html.tostring(download.html)
+
+    @rpc(Unicode, Unicode, Unicode, _returns=File, _http_routes=[
+            Rule("/files/<string:project_name>/<string:version>/<string:download>")])
+    def download_file(ctx,project_name,version,download):
+        pth = os.path.join(os.getcwd(),"files",project_name,version,download)
+
+        return File(name=download, type="application/x-tar", path=pth)
