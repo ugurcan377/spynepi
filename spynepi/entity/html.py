@@ -65,7 +65,9 @@ class IndexService(ServiceBase):
 
 class HtmlService(ServiceBase):
     @rpc(Unicode, Unicode,_returns=Unicode, _http_routes=[
+            Rule("/<string:project_name>/<string:version>/"),
             Rule("/<string:project_name>/<string:version>"),
+            Rule("/<string:project_name>/"),
             Rule("/<string:project_name>")
         ])
     def download_html(ctx,project_name,version):
