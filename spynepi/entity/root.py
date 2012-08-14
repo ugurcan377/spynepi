@@ -48,10 +48,11 @@ from spyne.model.binary import File
 from spyne.service import ServiceBase
 
 from spynepi.const import TABLE_PREFIX
+from spynepi.const import DATABASE_ENGINE
 
 from werkzeug.routing import Rule
 
-_user_database = create_engine('postgresql://ugurcan:Arskom1986@localhost:5432/test')
+_user_database = DATABASE_ENGINE
 metadata = MetaData(bind=_user_database)
 DeclarativeBase = declarative_base(metadata=metadata)
 

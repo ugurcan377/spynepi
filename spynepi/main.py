@@ -34,6 +34,7 @@ from spyne.protocol.xml import XmlObject
 from spyne.protocol.html import HtmlTable
 from spyne.protocol.html import HtmlPage
 
+from spynepi.const import DATABASE_ENGINE
 from spynepi.protocol import HttpRpc
 from spynepi.protocol import SpynePiHttpRpc
 from spynepi.entity.html import IndexService
@@ -47,7 +48,8 @@ from spynepi.entity.root import Distribution
 
 from werkzeug.exceptions import HTTPException
 from werkzeug.routing import Map,Rule
-_user_database = create_engine('postgresql://ugurcan:Arskom1986@localhost:5432/test')
+
+_user_database = DATABASE_ENGINE
 metadata = MetaData(bind=_user_database)
 DeclarativeBase = declarative_base(metadata=metadata)
 Session = sessionmaker(bind=_user_database)
