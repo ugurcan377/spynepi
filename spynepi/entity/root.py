@@ -54,7 +54,6 @@ from werkzeug.routing import Rule
 _user_database = create_engine('postgresql://ugurcan:Arskom1986@localhost:5432/test')
 metadata = MetaData(bind=_user_database)
 DeclarativeBase = declarative_base(metadata=metadata)
-Session = sessionmaker(bind=_user_database)
 
 class Package(TableModel, DeclarativeBase):
     __tablename__ = "%s_package"  % TABLE_PREFIX
