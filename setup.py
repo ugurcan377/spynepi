@@ -19,10 +19,11 @@ setup(
     author_email='ugurcanergn@gmail.com',
     url='http://github.com/ugurcan377/spynepi',
     license='GPL',
+
     install_requires=[
         "spyne<3.0", "sqlalchemy<0.8", "werkzeug",
     ],
-
+    include_package_data=True,
     entry_points = {
         'console_scripts': [
             '%(p)s_daemon=%(p)s.main:main' % {'p': PROJECT_NAME},
