@@ -49,18 +49,6 @@ from spynepi.entity.root import Distribution
 from werkzeug.exceptions import HTTPException
 from werkzeug.routing import Map,Rule
 
-class UserDefinedContext(object):
-    def __init__(self):
-        self.session = Session()
-
-
-def _on_method_call(ctx):
-    ctx.udc = UserDefinedContext()
-
-
-def _on_method_return_object(ctx):
-    ctx.udc.session.commit()
-    ctx.udc.session.close()
 
 def TWsgiApplication(url_map):
     def _application(environ, start_response, wsgi_url=None):
@@ -89,6 +77,18 @@ def main():
 
     db_handle = init_database(connection_string)
 
+    class UserDefinedContext(object):
+        def __init__(self):
+            self.session = db_handle.Session()
+
+
+    def _on_method_call(ctx):
+        ctx.udc = UserDefinedContext()
+
+
+    def _on_method_return_object(ctx):
+        ctx.udc.session.commit()
+        ctx.udc.session.close()
     index_app.event_manager.add_listener('method_call', _on_method_call)
     index_app.event_manager.add_listener('method_return_object', _on_method_return_object)
     rdf_app.event_manager.add_listener('method_call', _on_method_call)
