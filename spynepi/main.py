@@ -22,21 +22,16 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 
-from sqlalchemy import MetaData
 
 from spyne.application import Application
-from spyne.server.wsgi import WsgiApplication
 from spyne.protocol.xml import XmlObject
 from spyne.protocol.html import HtmlTable
-from spyne.protocol.html import HtmlPage
+from spyne.server.wsgi import WsgiApplication
 
-from spynepi.const import DATABASE_ENGINE
+from spynepi.const import DB_CONNECTION_STRING
+from spynepi.db import init_database
 from spynepi.protocol import HttpRpc
-from spynepi.protocol import SpynePiHttpRpc
 from spynepi.entity.html import IndexService
 from spynepi.entity.html import HtmlService
 from spynepi.entity.project import RdfService

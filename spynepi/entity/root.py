@@ -30,14 +30,8 @@ logger = logging.getLogger(__name__)
 import sqlalchemy
 
 from sqlalchemy import sql
-from sqlalchemy import create_engine
 from sqlalchemy import ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm import backref
-
-from sqlalchemy import MetaData
 from sqlalchemy import Column
 
 from spyne.decorator import rpc
@@ -48,7 +42,6 @@ from spyne.model.binary import File
 from spyne.service import ServiceBase
 
 from spynepi.const import TABLE_PREFIX
-from spynepi.const import DATABASE_ENGINE
 
 from werkzeug.routing import Rule
 from spynepi.db import DeclarativeBase
