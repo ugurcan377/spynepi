@@ -62,7 +62,7 @@ def TWsgiApplication(url_map):
 
     return _application
 
-def main():
+def main(connection_string=DB_CONNECTION_STRING):
     # configure logging
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
