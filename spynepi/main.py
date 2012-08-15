@@ -49,12 +49,6 @@ from spynepi.entity.root import Distribution
 from werkzeug.exceptions import HTTPException
 from werkzeug.routing import Map,Rule
 
-_user_database = DATABASE_ENGINE
-metadata = MetaData(bind=_user_database)
-DeclarativeBase = declarative_base(metadata=metadata)
-Session = sessionmaker(bind=_user_database)
-
-
 class UserDefinedContext(object):
     def __init__(self):
         self.session = Session()
@@ -92,6 +86,8 @@ def main():
                                 in_protocol=HttpRpc(), out_protocol=XmlObject())
     html_app = Application([HtmlService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HttpRpc())
+
+    db_handle = init_database(connection_string)
 
     index_app.event_manager.add_listener('method_call', _on_method_call)
     index_app.event_manager.add_listener('method_return_object', _on_method_return_object)
