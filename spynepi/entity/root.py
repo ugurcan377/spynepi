@@ -163,7 +163,7 @@ class RootService(ServiceBase):
             exists = True
             for rel in check[0].releases:
                 if rel.release_version == version and os.path.exists(pth) == True:
-                    raise(ArgumentError)
+                    raise ArgumentError()
 
         if body[":action"][0] == "submit":
             if exists:
@@ -187,8 +187,8 @@ class RootService(ServiceBase):
                 package = generate_package()
                 package.owners.append(generate_person())
                 package.releases.append(generate_release())
-                package_content()
                 package.releases[-1].distributions.append(generate_dist())
+                package_content()
                 ctx.udc.session.add(package)
                 ctx.udc.session.flush()
             ctx.udc.session.commit()
