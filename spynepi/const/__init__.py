@@ -1,4 +1,3 @@
-from sqlalchemy import create_engine
 
+DB_CONNECTION_STRING = 'postgresql://ugurcan:Arskom1986@localhost:5432/test'
 TABLE_PREFIX = "spynepi"
-DATABASE_ENGINE = create_engine('postgresql://ugurcan:Arskom1986@localhost:5432/test')
