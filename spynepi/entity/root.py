@@ -51,10 +51,7 @@ from spynepi.const import TABLE_PREFIX
 from spynepi.const import DATABASE_ENGINE
 
 from werkzeug.routing import Rule
-
-_user_database = DATABASE_ENGINE
-metadata = MetaData(bind=_user_database)
-DeclarativeBase = declarative_base(metadata=metadata)
+from spynepi.db import DeclarativeBase
 
 class Package(TableModel, DeclarativeBase):
     __tablename__ = "%s_package"  % TABLE_PREFIX
