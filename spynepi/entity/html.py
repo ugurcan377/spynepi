@@ -24,6 +24,7 @@ import os
 
 from lxml import html
 
+from pkg_resources import resource_filename
 from werkzeug.routing import Rule
 
 from spyne.decorator import rpc
@@ -48,6 +49,8 @@ from spynepi.entity.root import Package
 from spynepi.entity.root import Release
 from spynepi.entity.root import Person
 from spynepi.entity.root import Distribution
+
+TPL_DOWNLOAD = os.path.abspath(resource_filename("spynepi.const.template", "download.html"))
 
 class IndexService(ServiceBase):
     @rpc (_returns=Array(Index), _http_routes=[Rule("/",methods=["GET"])])
@@ -74,13 +77,14 @@ class HtmlService(ServiceBase):
         ])
     def download_html(ctx,project_name,version):
         ctx.transport.mime_type = "text/html"
+
         if version:
-            hede = ctx.udc.session.query(Package,Release).\
-            filter(Package.package_name==project_name).\
-            filter(Release.release_version==version).\
-            filter(Package.id==Release.package_id).all()
-            pack,ver = hede[0]
-            download = HtmlPage("template/download.html")
+            query = ctx.udc.session.query(Package,Release).\
+                    filter(Package.package_name==project_name).\
+                    filter(Release.release_version==version).\
+                    filter(Package.id==Release.package_id).all()
+            pack,ver = query[0]
+            download = HtmlPage(TPL_DOWNLOAD)
             download.title = project_name
             download.link.attrib["href"] = os.path.join(ver.rdf_about,"doap.rdf")
             download.h1 = project_name+"-"+version
@@ -92,7 +96,7 @@ class HtmlService(ServiceBase):
             package = ctx.udc.session.query(Package).filter_by(
                                             package_name=project_name).one()
 
-            download = HtmlPage("template/download.html")
+            download = HtmlPage(TPL_DOWNLOAD)
             download.title = project_name
             download.link.attrib["href"] = os.path.join(package.releases[-1].rdf_about,"doap.rdf")
             download.h1 = project_name
