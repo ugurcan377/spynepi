@@ -42,6 +42,7 @@ from spyne.model.binary import File
 from spyne.service import ServiceBase
 
 from spynepi.const import TABLE_PREFIX
+from spynepi.const import FILES_PATH
 
 from werkzeug.routing import Rule
 from spynepi.db import DeclarativeBase
@@ -108,6 +109,7 @@ class RootService(ServiceBase):
             md5_digest, filetype, pyversion, summary, version, protcol_version):
         exists = False
         pth = os.path.join("files",name,version)
+
         def generate_package():
             return Package(package_name=name,
                            package_cdate=datetime.date.today(),
@@ -145,12 +147,12 @@ class RootService(ServiceBase):
 
         def package_content():
             file = content
-            pth = os.path.abspath(pth)
-            if os.path.exists(pth):
-                f = open(os.path.join(pth,file.name),"w")
+            path = os.path.join(FILES_PATH,pth)
+            if os.path.exists(path):
+                f = open(os.path.join(path,file.name),"w")
             else:
-                os.makedirs(pth)
-                f = open(os.path.join(pth,file.name),"w")
+                os.makedirs(path)
+                f = open(os.path.join(path,file.name),"w")
 
             for d in file.data:
                 f.write(d)

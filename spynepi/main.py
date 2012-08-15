@@ -30,6 +30,8 @@ from spyne.protocol.html import HtmlTable
 from spyne.server.wsgi import WsgiApplication
 
 from spynepi.const import DB_CONNECTION_STRING
+from spynepi.const import HOST
+from spynepi.const import PORT
 from spynepi.db import init_database
 from spynepi.protocol import HttpRpc
 from spynepi.entity.html import IndexService
@@ -84,6 +86,7 @@ def main(connection_string=DB_CONNECTION_STRING):
     def _on_method_return_object(ctx):
         ctx.udc.session.commit()
         ctx.udc.session.close()
+
     index_app.event_manager.add_listener('method_call', _on_method_call)
     index_app.event_manager.add_listener('method_return_object', _on_method_return_object)
     rdf_app.event_manager.add_listener('method_call', _on_method_call)
@@ -96,7 +99,6 @@ def main(connection_string=DB_CONNECTION_STRING):
     Person.__table__.create(checkfirst=True)
     Release.__table__.create(checkfirst=True)
     Distribution.__table__.create(checkfirst=True)
-
 
     # configure server
     try:
@@ -118,10 +120,9 @@ def main(connection_string=DB_CONNECTION_STRING):
                 endpoint=wsgi_html),
         ])
 
-    host = '0.0.0.0'
-    server = make_server(host, 7789, TWsgiApplication(url_map))
+    server = make_server(HOST, PORT, TWsgiApplication(url_map))
 
     # start server
-    logger.info("listening to http://%s:7789" % host)
+    logger.info("listening to http://%s:%s" %(HOST,PORT))
     logger.info("wsdl is at: http://localhost:7789/?wsdl")
     server.serve_forever()
