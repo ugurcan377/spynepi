@@ -21,6 +21,7 @@
 
 import datetime
 import os
+import subprocess
 
 from lxml import html
 from urllib2 import urlopen
@@ -83,8 +84,9 @@ def cache_packages(project_name):
         os.makedirs(path)
     easy_install(["--user","-U","--build-directory",path,project_name])
     dpath = os.path.join(path,project_name)
-    os.system("cd %s && python setup.py register -r %s "\
-            "sdist upload -r %s" %(dpath,REPO_NAME,REPO_NAME))
+    command = ["python", "setup.py", "register", "-r", REPO_NAME, "sdist",
+                                                "upload", "-r", REPO_NAME]
+    subprocess.call(command, cwd=dpath)
 
 
 class HtmlService(ServiceBase):
