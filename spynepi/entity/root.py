@@ -1,4 +1,3 @@
-
 # encoding: utf8
 #
 # (C) Copyright Arskom Ltd. <info@arskom.com.tr>
@@ -53,7 +52,7 @@ class Package(TableModel, DeclarativeBase):
     id = Column(sqlalchemy.Integer, primary_key=True)
     package_name = Column(sqlalchemy.String(40))
     package_cdate = Column(sqlalchemy.Date)
-    package_description = Column(sqlalchemy.String(256))
+    package_description = Column(sqlalchemy.UnicodeText())
     rdf_about = Column(sqlalchemy.String(256))
     owners = relationship("Person", backref="%s_package" % TABLE_PREFIX)
     package_license = Column(sqlalchemy.String(40))
@@ -109,7 +108,6 @@ class RootService(ServiceBase):
             md5_digest, filetype, pyversion, summary, version, protcol_version):
         exists = False
         pth = os.path.join("files",name,version)
-
         def generate_package():
             return Package(package_name=name,
                            package_cdate=datetime.date.today(),
