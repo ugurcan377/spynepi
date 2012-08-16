@@ -84,6 +84,10 @@ def cache_packages(project_name):
         os.makedirs(path)
     easy_install(["--user","-U","--build-directory",path,project_name])
     dpath = os.path.join(path,project_name)
+    dpath = os.path.abspath(dpath)
+    if not dpath.startswith(path):
+        # This request tried to read arbitrary data from the filesystem
+        raise RequestForbidden(repr([project_name,]))
     command = ["python", "setup.py", "register", "-r", REPO_NAME, "sdist",
                                                 "upload", "-r", REPO_NAME]
     subprocess.call(command, cwd=dpath)
