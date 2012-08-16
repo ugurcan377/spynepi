@@ -24,7 +24,9 @@ import os
 
 from lxml import html
 
+from setuptools.command.easy_install import main as easy_install
 from pkg_resources import resource_filename
+
 from werkzeug.routing import Rule
 
 from spyne.decorator import rpc
@@ -68,6 +70,15 @@ class IndexService(ServiceBase):
             ))
 
         return idx
+
+def cache_packages(project_name):
+    path = os.path.join(FILES_PATH,"files","tmp")
+    if not os.path.exists(path):
+        os.makedirs(path)
+    easy_install(["--user","-U","--build-directory",path,project_name])
+    dpath = os.path.join(path,project_name)
+    os.system("cd %s && python setup.py register -r %s "\
+            "sdist upload -r %s" %(dpath,REPO_NAME,REPO_NAME))
 
 
 class HtmlService(ServiceBase):
