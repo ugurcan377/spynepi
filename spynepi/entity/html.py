@@ -39,6 +39,8 @@ from spyne.model.binary import File
 from spyne.protocol.html import HtmlPage
 from spyne.service import ServiceBase
 
+from spynepi.const import FILES_PATH
+from spynepi.const import REPO_NAME
 from spynepi.core import Project
 from spynepi.core import Release
 from spynepi.core import Version
@@ -110,7 +112,7 @@ class HtmlService(ServiceBase):
     @rpc(Unicode, Unicode, Unicode, _returns=File, _http_routes=[
             Rule("/files/<string:project_name>/<string:version>/<string:file_name>")])
     def download_file(ctx, project_name, version, file_name):
-        repository_path = os.path.abspath("files")
+        repository_path = os.path.join(FILES_PATH,"files")
         file_path = os.path.join(repository_path, project_name, version, file_name)
         file_path = os.path.abspath(file_path)
         if not file_path.startswith(repository_path):
