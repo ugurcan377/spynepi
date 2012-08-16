@@ -23,14 +23,20 @@ import datetime
 import os
 
 from lxml import html
+from urllib2 import urlopen
+from urllib2 import HTTPError
 
 from setuptools.command.easy_install import main as easy_install
 from pkg_resources import resource_filename
+
+from sqlalchemy.orm.exc import NoResultFound
 
 from werkzeug.routing import Rule
 
 from spyne.decorator import rpc
 from spyne.error import RequestForbidden
+from spyne.error import ResourceNotFoundError
+
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import Integer
 from spyne.model.primitive import AnyUri
@@ -91,6 +97,16 @@ class HtmlService(ServiceBase):
     def download_html(ctx,project_name,version):
         ctx.transport.mime_type = "text/html"
 
+        try:
+            ctx.udc.session.query(Package).filter_by(
+                                            package_name=project_name).one()
+        except NoResultFound:
+            try:
+                data = urlopen("http://pypi.python.org/simple/%s"%(project_name)).read()
+                cache_packages(project_name)
+            except HTTPError:
+                raise ResourceNotFoundError()
+
         if version:
             query = ctx.udc.session.query(Package,Release).\
                     filter(Package.package_name==project_name).\
@@ -130,3 +146,4 @@ class HtmlService(ServiceBase):
             # This request tried to read arbitrary data from the filesystem
             raise RequestForbidden(repr([project_name, version, file_name]))
         return File(name=file_name, path=file_path)
+
