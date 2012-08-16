@@ -19,10 +19,13 @@
 # MA 02110-1301, USA.
 #
 
+import sys
 import logging
 logger = logging.getLogger(__name__)
 
-
+from twisted.internet import reactor
+from twisted.web.server import Site
+from twisted.web.wsgi import WSGIResource
 
 from spyne.application import Application
 from spyne.protocol.xml import XmlObject
@@ -63,7 +66,7 @@ def main(connection_string=DB_CONNECTION_STRING):
     # configure logging
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-    logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
+#    logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
     index_app = Application([RootService,IndexService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HtmlTable())
@@ -100,12 +103,6 @@ def main(connection_string=DB_CONNECTION_STRING):
     Release.__table__.create(checkfirst=True)
     Distribution.__table__.create(checkfirst=True)
 
-    # configure server
-    try:
-        from wsgiref.simple_server import make_server
-    except ImportError:
-        print "Error: example server code requires Python >= 2.5"
-
     wsgi_index = WsgiApplication(index_app)
     wsgi_rdf = WsgiApplication(rdf_app)
     wsgi_html = WsgiApplication(html_app)
@@ -120,9 +117,12 @@ def main(connection_string=DB_CONNECTION_STRING):
                 endpoint=wsgi_html),
         ])
 
-    server = make_server(HOST, PORT, TWsgiApplication(url_map))
+    resource = WSGIResource(reactor, reactor, TWsgiApplication(url_map))
+    site = Site(resource)
 
-    # start server
-    logger.info("listening to http://%s:%s" %(HOST,PORT))
-    logger.info("wsdl is at: http://localhost:7789/?wsdl")
-    server.serve_forever()
+    reactor.listenTCP(PORT, site)
+
+    logging.info('listening on: %s:%d' % (HOST, PORT))
+    logging.info('wsdl is at: http://%s:%d/?wsdl' % (HOST, PORT))
+
+    sys.exit(reactor.run())
