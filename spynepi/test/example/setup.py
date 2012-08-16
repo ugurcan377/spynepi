@@ -6,7 +6,7 @@ import re
 from setuptools import setup
 from setuptools import find_packages
 
-PROJECT_NAME = 'spynepi'
+PROJECT_NAME = 'example'
 
 v = open(os.path.join(os.path.dirname(__file__), PROJECT_NAME, '__init__.py'), 'r')
 VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
@@ -15,18 +15,17 @@ setup(
     name=PROJECT_NAME,
     packages=find_packages(),
     version=VERSION,
-    author='Ugurcan Ergun',
-    author_email='ugurcanergn@gmail.com',
-    url='http://github.com/ugurcan377/spynepi',
-    license='GPL',
-
+    author='Monty Python',
+    author_email='spam@foo.org',
+    url='http://foo.org',
+    license='DWTFDYWPL',
     install_requires=[
-        "spyne<3.0", "sqlalchemy<0.8", "werkzeug",
+      #'lxml>=2.2.1',
     ],
-    include_package_data=True,
+
     entry_points = {
         'console_scripts': [
-            '%(p)s_daemon=%(p)s.main:main' % {'p': PROJECT_NAME},
+            '%(p)s=%(p)s.main:main' % {'p': PROJECT_NAME},
         ]
     },
 )

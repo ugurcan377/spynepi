@@ -30,14 +30,8 @@ logger = logging.getLogger(__name__)
 import sqlalchemy
 
 from sqlalchemy import sql
-from sqlalchemy import create_engine
 from sqlalchemy import ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm import backref
-
-from sqlalchemy import MetaData
 from sqlalchemy import Column
 
 from spyne.decorator import rpc
@@ -48,11 +42,10 @@ from spyne.model.binary import File
 from spyne.service import ServiceBase
 
 from spynepi.const import TABLE_PREFIX
+from spynepi.const import FILES_PATH
 
-_user_database = create_engine('postgresql://ugurcan:Arskom1986@localhost:5432/test')
-metadata = MetaData(bind=_user_database)
-DeclarativeBase = declarative_base(metadata=metadata)
-Session = sessionmaker(bind=_user_database)
+from werkzeug.routing import Rule
+from spynepi.db import DeclarativeBase
 
 class Package(TableModel, DeclarativeBase):
     __tablename__ = "%s_package"  % TABLE_PREFIX
@@ -86,6 +79,7 @@ class Release(TableModel, DeclarativeBase):
     rdf_about = Column(sqlalchemy.String(256))
     release_version = Column(sqlalchemy.String(10))
     meta_version = Column(sqlalchemy.String(10))
+    release_summary = Column(sqlalchemy.String(256))
     release_platform = Column(sqlalchemy.String(30))
     distributions = relationship("Distribution", backref="%s_release" % TABLE_PREFIX)
 
@@ -103,62 +97,62 @@ class Distribution(TableModel, DeclarativeBase):
     dist_file_type = Column(sqlalchemy.String(256))
     dist_md5 = Column(sqlalchemy.String(256))
     py_version = Column(sqlalchemy.String(10))
-    dist_summary = Column(sqlalchemy.String(256))
     protocol_version = Column(sqlalchemy.String(10))
 
 
 class RootService(ServiceBase):
     @rpc(Unicode, Unicode, Unicode, Unicode, File, Unicode, Unicode, Unicode,
          Unicode, Unicode, Unicode, Unicode, Unicode, Unicode, Unicode,
-         Unicode, Unicode, String)
+         Unicode, Unicode, String, _http_routes=[Rule("/",methods=["POST"])] )
     def register(ctx, name, license, author, home_page, content, comment,
             download_url, platform, description, metadata_version, author_email,
             md5_digest, filetype, pyversion, summary, version, protcol_version):
         exists = False
-        pth = str(os.path.join("files",str(name),str(version)))
+        pth = os.path.join("files",name,version)
+
         def generate_package():
-            return Package(package_name=str(name),
+            return Package(package_name=name,
                            package_cdate=datetime.date.today(),
                            package_description=description,
-                           rdf_about=os.path.join("/pypi", str(name)),
-                           package_license=str(license),
-                           package_home_page=str(home_page)
+                           rdf_about=os.path.join("/", name),
+                           package_license=license,
+                           package_home_page=home_page
                            )
 
         def generate_person():
-            return Person(person_name=str(author),
-                person_email=str(author_email),
+            return Person(person_name=author,
+                person_email=author_email,
             )
 
         def generate_release():
-            return Release(rdf_about=os.path.join("/pypi",
-                    str(name),str(version)),
-                release_version=str(version),
+            return Release(rdf_about=os.path.join("/",
+                    name,version),
+                release_version=version,
                 release_cdate=datetime.date.today(),
-                release_summary=str(summary) ,
-                meta_version=str(metadata_version),
-                release_platform=str(platform),
+                release_summary=summary ,
+                meta_version=metadata_version,
+                release_platform=platform,
             )
 
         def generate_dist():
             return Distribution(content_name=content.name,
                 content_path=pth,
-                dist_download_url=str(download_url),
-                dist_comment=str(comment),
-                dist_file_type=str(filetype),
-                dist_md5=str(md5_digest),
-                py_version=str(pyversion),
-                protocol_version=str(protcol_version),
+                dist_download_url=download_url,
+                dist_comment=comment,
+                dist_file_type=filetype,
+                dist_md5=md5_digest,
+                py_version=pyversion,
+                protocol_version=protcol_version,
             )
 
         def package_content():
             file = content
-
-            if os.path.exists(pth):
-                f = open(os.path.join(d,file.name),"w")
+            path = os.path.join(FILES_PATH,pth)
+            if os.path.exists(path):
+                f = open(os.path.join(path,file.name),"w")
             else:
-                os.makedirs(pth)
-                f = open(os.path.join(d,file.name),"w")
+                os.makedirs(path)
+                f = open(os.path.join(path,file.name),"w")
 
             for d in file.data:
                 f.write(d)
@@ -171,30 +165,32 @@ class RootService(ServiceBase):
             exists = True
             for rel in check[0].releases:
                 if rel.release_version == version and os.path.exists(pth) == True:
-                    raise(ArgumentError)
+                    raise ArgumentError()
 
-        if str(body[":action"][0]) == "submit":
+        if body[":action"][0] == "submit":
             if exists:
                 check[0].releases.append(generate_release())
             else:
                 package = generate_package()
+                package.owners.append(generate_person())
                 package.releases.append(generate_release())
                 ctx.udc.session.add(package)
                 ctx.udc.session.flush()
             ctx.udc.session.commit()
 
-        if str(body[":action"][0]) == "file_upload":
+        if body[":action"][0] == "file_upload":
             if exists:
                 rel = ctx.udc.session.query(Release).join(Package).filter(sql.and_
-                    (Package.package_name == "ornek",
-                    Release.release_version == "0.1.0")).all()
+                    (Package.package_name == name,
+                    Release.release_version == version)).all()
                 rel[0].distributions.append(generate_dist())
+                package_content()
             else:
                 package = generate_package()
-                package.owners.append()
+                package.owners.append(generate_person())
                 package.releases.append(generate_release())
-                package_content()
                 package.releases[-1].distributions.append(generate_dist())
+                package_content()
                 ctx.udc.session.add(package)
                 ctx.udc.session.flush()
             ctx.udc.session.commit()
