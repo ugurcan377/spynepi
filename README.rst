@@ -59,7 +59,7 @@ your ``~/.pypirc`` file::
 
 Then you must set some settings for spynepi which is inside ``spynepi/const/__init__.py`` 
 
-* DB_ CONNECTION_ STRING : Must be an sqlalchemy compatiable database connection string
+* DB_CONNECTION_STRING : Must be an sqlalchemy compatiable database connection string
 For detatils please read <http://docs.sqlalchemy.org/en/rel_0_7/core/engines.html>  
 Example: for postgres `postgresql://user:password@localhost:5432/database_name`
 
