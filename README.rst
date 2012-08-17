@@ -60,11 +60,11 @@ your ``~/.pypirc`` file::
 Then you must set some settings for spynepi which is inside ``spynepi/const/__init__.py`` 
 
 * DB_CONNECTION_STRING : Must be an sqlalchemy compatiable database connection string
-For detatils please read http://docs.sqlalchemy.org/en/rel_0_7/core/engines.html  
-Example: for postgres `postgresql://user:password@localhost:5432/database_name`
+  For detatils please read http://docs.sqlalchemy.org/en/rel_0_7/core/engines.html  
+  Example: for postgres ``postgresql://user:password@localhost:5432/database_name``
 
 * FILES_PATH : An (absolute) path which packages will be stored  
-Example: ``/home/foo/workspace/spynepi``
+  Example: ``/home/foo/workspace/spynepi``
 
 * HOST : Thank you Captain Obvious.  
   Default is 0.0.0.0
