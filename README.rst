@@ -4,16 +4,16 @@ Spynepi
 This is a caching PyPI implementation that can be used as a standalone PyPI server
 as well as a PyPI cache.
 
-As the name suggests, it is using `spyne <http://pypi.python.org/pypi/spyne>`
+As the name suggests, it is using `spyne http://pypi.python.org/pypi/spyne`
 
 Requirements
 ------------
 Spynepi uses some subsystems of spyne which requires optional dependencies. And also spynepi uses twisted as wsgi server
 
-* Spyne <http://github.com/arskom/spyne>
-* Twisted <http://twistedmatrix.com/>
-* SQLAlchemy <http://sqlalchemy.org>
-* Werkzeug <http://werkzeug.pocoo.org/>
+* Spyne http://github.com/arskom/spyne
+* Twisted http://twistedmatrix.com/
+* SQLAlchemy http://sqlalchemy.org
+* Werkzeug http://werkzeug.pocoo.org/
 
 Installation
 ------------
@@ -60,7 +60,7 @@ your ``~/.pypirc`` file::
 Then you must set some settings for spynepi which is inside ``spynepi/const/__init__.py`` 
 
 * DB_CONNECTION_STRING : Must be an sqlalchemy compatiable database connection string
-For detatils please read <http://docs.sqlalchemy.org/en/rel_0_7/core/engines.html>  
+For detatils please read http://docs.sqlalchemy.org/en/rel_0_7/core/engines.html  
 Example: for postgres `postgresql://user:password@localhost:5432/database_name`
 
 * FILES_PATH : An (absolute) path which packages will be stored  
