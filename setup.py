@@ -15,13 +15,22 @@ setup(
     name=PROJECT_NAME,
     packages=find_packages(),
     version=VERSION,
+    description="This is a caching PyPI implementation that uses spyne",
+    classifiers=[
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Operating System :: OS Independent',
+        'Natural Language :: English',
+        'Intended Audience :: Developers',
+    ],
+    keywords=('pypi', 'spyne', 'wsgi', 'rpc', 'http'),
     author='Ugurcan Ergun',
     author_email='ugurcanergn@gmail.com',
     url='http://github.com/ugurcan377/spynepi',
     license='GPL',
 
     install_requires=[
-        "spyne<3.0", "sqlalchemy<0.8", "werkzeug",
+        "spyne<3.0", "sqlalchemy<0.8", "werkzeug", "twisted",
     ],
     include_package_data=True,
     entry_points = {
