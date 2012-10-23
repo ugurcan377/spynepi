@@ -19,7 +19,6 @@
 # MA 02110-1301, USA.
 #
 
-import datetime
 import os
 import subprocess
 
@@ -35,13 +34,12 @@ from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.routing import Rule
 
 from spyne.decorator import rpc
-from spyne.error import RequestForbidden
+from spyne.error import RequestNotAllowed
 from spyne.error import ResourceNotFoundError
 
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import Integer
 from spyne.model.primitive import AnyUri
-from spyne.model.primitive import UriValue
 from spyne.model.primitive import Float
 from spyne.model.complex import Array
 from spyne.model.binary import File
@@ -71,7 +69,7 @@ class IndexService(ServiceBase):
         for package in packages:
             idx.append(Index(
                 Updated=package.package_cdate,
-                Package=UriValue(text=package.package_name,
+                Package=AnyUri.Value(text=package.package_name,
                     href=package.releases[-1].rdf_about),
                 Description=package.package_description,
             ))
@@ -87,7 +85,7 @@ def cache_packages(project_name):
     dpath = os.path.abspath(dpath)
     if not dpath.startswith(path):
         # This request tried to read arbitrary data from the filesystem
-        raise RequestForbidden(repr([project_name,]))
+        raise RequestNotAllowed(repr([project_name,]))
     command = ["python", "setup.py", "register", "-r", REPO_NAME, "sdist",
                                                 "upload", "-r", REPO_NAME]
     subprocess.call(command, cwd=dpath)

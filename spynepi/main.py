@@ -30,13 +30,13 @@ from twisted.web.wsgi import WSGIResource
 from spyne.application import Application
 from spyne.protocol.xml import XmlObject
 from spyne.protocol.html import HtmlTable
+from spyne.protocol.http import HttpRpc
 from spyne.server.wsgi import WsgiApplication
 
 from spynepi.const import DB_CONNECTION_STRING
 from spynepi.const import HOST
 from spynepi.const import PORT
 from spynepi.db import init_database
-from spynepi.protocol import HttpRpc
 from spynepi.entity.html import IndexService
 from spynepi.entity.html import HtmlService
 from spynepi.entity.project import RdfService
@@ -80,7 +80,6 @@ def main(connection_string=DB_CONNECTION_STRING):
     class UserDefinedContext(object):
         def __init__(self):
             self.session = db_handle.Session()
-
 
     def _on_method_call(ctx):
         ctx.udc = UserDefinedContext()
