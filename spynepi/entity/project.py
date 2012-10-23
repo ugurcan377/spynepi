@@ -22,26 +22,20 @@
 
 import os
 
-import datetime
-from lxml import etree
-
-from werkzeug.routing import Rule
-
 from spyne.decorator import rpc
 from spyne.model.primitive import Unicode
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Float
 from spyne.service import ServiceBase
 
+from spynepi.core import Developer
+from spynepi.core import Person
 from spynepi.core import Project
 from spynepi.core import Release
 from spynepi.core import Version
-from spynepi.core import Developer
-from spynepi.core import Person
 from spynepi.entity.root import Package
-from spynepi.entity.root import Release
 from spynepi.entity.root import Person
-from spynepi.entity.root import Distribution
+from spynepi.entity.root import Release
+
+from werkzeug.routing import Rule
 
 class RdfService(ServiceBase):
     @rpc(Unicode, Unicode, _returns=Project, _http_routes=[

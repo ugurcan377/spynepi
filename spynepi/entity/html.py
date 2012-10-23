@@ -22,42 +22,34 @@
 import os
 import subprocess
 
-from lxml import html
-from urllib2 import urlopen
 from urllib2 import HTTPError
+from urllib2 import urlopen
 
-from setuptools.command.easy_install import main as easy_install
+from lxml import html
+
 from pkg_resources import resource_filename
 
-from sqlalchemy.orm.exc import NoResultFound
-
-from werkzeug.routing import Rule
+from setuptools.command.easy_install import main as easy_install
 
 from spyne.decorator import rpc
 from spyne.error import RequestNotAllowed
 from spyne.error import ResourceNotFoundError
-
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import Integer
-from spyne.model.primitive import AnyUri
-from spyne.model.primitive import Float
-from spyne.model.complex import Array
 from spyne.model.binary import File
+from spyne.model.complex import Array
+from spyne.model.primitive import AnyUri
+from spyne.model.primitive import Unicode
 from spyne.protocol.html import HtmlPage
 from spyne.service import ServiceBase
 
 from spynepi.const import FILES_PATH
 from spynepi.const import REPO_NAME
-from spynepi.core import Project
-from spynepi.core import Release
-from spynepi.core import Version
-from spynepi.core import Developer
-from spynepi.core import Person
 from spynepi.core import Index
+from spynepi.core import Release
 from spynepi.entity.root import Package
 from spynepi.entity.root import Release
-from spynepi.entity.root import Person
-from spynepi.entity.root import Distribution
+from sqlalchemy.orm.exc import NoResultFound
+
+from werkzeug.routing import Rule
 
 TPL_DOWNLOAD = os.path.abspath(resource_filename("spynepi.const.template", "download.html"))
 
@@ -148,6 +140,6 @@ class HtmlService(ServiceBase):
         file_path = os.path.abspath(file_path)
         if not file_path.startswith(repository_path):
             # This request tried to read arbitrary data from the filesystem
-            raise RequestForbidden(repr([project_name, version, file_name]))
+            raise RequestNotAllowed(repr([project_name, version, file_name]))
         return File(name=file_name, path=file_path)
 

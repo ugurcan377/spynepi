@@ -94,7 +94,6 @@ class Project(ComplexModel):
     ])
 
 class Index(ComplexModel):
-
     _type_info = odict([
         ("Updated", Date),
         ("Package", AnyUri),

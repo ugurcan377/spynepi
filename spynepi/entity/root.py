@@ -19,13 +19,11 @@
 # MA 02110-1301, USA.
 #
 
-from spyne.error import ArgumentError
 import datetime
-import os
-
-import logging
 logger = logging.getLogger(__name__)
 
+import logging
+import os
 import sqlalchemy
 
 from sqlalchemy import sql
@@ -34,6 +32,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Column
 
 from spyne.decorator import rpc
+from spyne.error import ArgumentError
 from spyne.model.table import TableModel
 from spyne.model.primitive import String
 from spyne.model.primitive import Unicode

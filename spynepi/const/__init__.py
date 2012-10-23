@@ -1,3 +1,4 @@
+
 # The database connection string must be sqlalchemy compatible
 DB_CONNECTION_STRING = "sqlite:///:memory:"
 # The path(absolute recommended) where package files will be saved
