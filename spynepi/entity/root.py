@@ -19,17 +19,19 @@
 # MA 02110-1301, USA.
 #
 
-import datetime
+import logging
 logger = logging.getLogger(__name__)
 
-import logging
+import datetime
 import os
 import sqlalchemy
 
 from sqlalchemy import sql
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
 from sqlalchemy import Column
+from sqlalchemy.orm import relationship
+
+from werkzeug.routing import Rule
 
 from spyne.decorator import rpc
 from spyne.error import ArgumentError
@@ -42,7 +44,6 @@ from spyne.service import ServiceBase
 from spynepi.const import TABLE_PREFIX
 from spynepi.const import FILES_PATH
 
-from werkzeug.routing import Rule
 from spynepi.db import DeclarativeBase
 
 class Package(TableModel, DeclarativeBase):
@@ -105,42 +106,45 @@ class RootService(ServiceBase):
     def register(ctx, name, license, author, home_page, content, comment,
             download_url, platform, description, metadata_version, author_email,
             md5_digest, filetype, pyversion, summary, version, protcol_version):
+
         exists = False
-        pth = os.path.join("files",name,version)
+        pth = os.path.join("files", name, version)
+
         def generate_package():
-            return Package(package_name=name,
-                           package_cdate=datetime.date.today(),
-                           package_description=description,
-                           rdf_about=os.path.join("/", name),
-                           package_license=license,
-                           package_home_page=home_page
-                           )
+            return Package(
+                    package_name=name,
+                    package_cdate=datetime.date.today(),
+                    package_description=description,
+                    rdf_about=os.path.join("/", name),
+                    package_license=license,
+                    package_home_page=home_page
+                )
 
         def generate_person():
             return Person(person_name=author,
-                person_email=author_email,
-            )
+                    person_email=author_email,
+                )
 
         def generate_release():
-            return Release(rdf_about=os.path.join("/",
-                    name,version),
-                release_version=version,
-                release_cdate=datetime.date.today(),
-                release_summary=summary ,
-                meta_version=metadata_version,
-                release_platform=platform,
-            )
+            return Release(
+                    rdf_about=os.path.join("/", name, version),
+                    release_version=version,
+                    release_cdate=datetime.date.today(),
+                    release_summary=summary ,
+                    meta_version=metadata_version,
+                    release_platform=platform,
+                )
 
         def generate_dist():
             return Distribution(content_name=content.name,
-                content_path=pth,
-                dist_download_url=download_url,
-                dist_comment=comment,
-                dist_file_type=filetype,
-                dist_md5=md5_digest,
-                py_version=pyversion,
-                protocol_version=protcol_version,
-            )
+                    content_path=pth,
+                    dist_download_url=download_url,
+                    dist_comment=comment,
+                    dist_file_type=filetype,
+                    dist_md5=md5_digest,
+                    py_version=pyversion,
+                    protocol_version=protcol_version,
+                )
 
         def package_content():
             file = content
@@ -156,6 +160,7 @@ class RootService(ServiceBase):
             f.close()
 
         body = ctx.in_body_doc
+
         #TO-DO Add a method check
         check = ctx.udc.session.query(Package).filter_by(package_name=name).all()
         if check != []:
@@ -167,6 +172,7 @@ class RootService(ServiceBase):
         if body[":action"][0] == "submit":
             if exists:
                 check[0].releases.append(generate_release())
+
             else:
                 package = generate_package()
                 package.owners.append(generate_person())
@@ -189,5 +195,5 @@ class RootService(ServiceBase):
                 package.releases[-1].distributions.append(generate_dist())
                 package_content()
                 ctx.udc.session.add(package)
-                ctx.udc.session.flush()
+
             ctx.udc.session.commit()

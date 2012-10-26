@@ -106,13 +106,13 @@ def main(connection_string=DB_CONNECTION_STRING):
     wsgi_rdf = WsgiApplication(rdf_app)
     wsgi_html = WsgiApplication(html_app)
     url_map = Map([Rule("/", endpoint=wsgi_index),
-        Rule("/<string:project_name>/<string:version>/doap.rdf",endpoint=wsgi_rdf),
-        Rule("/<string:project_name>/doap.rdf",endpoint=wsgi_rdf),
-        Rule("/<string:project_name>/<string:version>/", endpoint=wsgi_html),
-        Rule("/<string:project_name>/<string:version>", endpoint=wsgi_html),
-        Rule("/<string:project_name>/", endpoint=wsgi_html),
-        Rule("/<string:project_name>", endpoint=wsgi_html),
-        Rule("/files/<string:project_name>/<string:version>/<string:download>",
+        Rule("/<project_name>/<version>/doap.rdf",endpoint=wsgi_rdf),
+        Rule("/<project_name>/doap.rdf",endpoint=wsgi_rdf),
+        Rule("/<project_name>/<version>/", endpoint=wsgi_html),
+        Rule("/<project_name>/<version>", endpoint=wsgi_html),
+        Rule("/<project_name>/", endpoint=wsgi_html),
+        Rule("/<project_name>", endpoint=wsgi_html),
+        Rule("/files/<project_name>/<version>/<download>",
                 endpoint=wsgi_html),
         ])
 

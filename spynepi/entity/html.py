@@ -51,7 +51,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from werkzeug.routing import Rule
 
-TPL_DOWNLOAD = os.path.abspath(resource_filename("spynepi.const.template", "download.html"))
+TPL_DOWNLOAD = os.path.abspath(resource_filename("spynepi.const.template",
+                                                               "download.html"))
 
 class IndexService(ServiceBase):
     @rpc (_returns=Array(Index), _http_routes=[Rule("/",methods=["GET"])])
