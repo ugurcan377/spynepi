@@ -31,14 +31,13 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Column
 from sqlalchemy.orm import relationship
 
-from werkzeug.routing import Rule
-
 from spyne.decorator import rpc
 from spyne.error import ArgumentError
 from spyne.model.table import TableModel
 from spyne.model.primitive import String
 from spyne.model.primitive import Unicode
 from spyne.model.binary import File
+from spyne.protocol.http import HttpRoute
 from spyne.service import ServiceBase
 
 from spynepi.const import TABLE_PREFIX
@@ -102,7 +101,7 @@ class Distribution(TableModel, DeclarativeBase):
 class RootService(ServiceBase):
     @rpc(Unicode, Unicode, Unicode, Unicode, File, Unicode, Unicode, Unicode,
          Unicode, Unicode, Unicode, Unicode, Unicode, Unicode, Unicode,
-         Unicode, Unicode, String, _http_routes=[Rule("/",methods=["POST"])] )
+         Unicode, Unicode, String, _http_routes=[HttpRoute("/",verb="POST")] )
     def register(ctx, name, license, author, home_page, content, comment,
             download_url, platform, description, metadata_version, author_email,
             md5_digest, filetype, pyversion, summary, version, protcol_version):

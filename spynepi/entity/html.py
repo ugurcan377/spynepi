@@ -39,6 +39,7 @@ from spyne.model.complex import Array
 from spyne.model.primitive import AnyUri
 from spyne.model.primitive import Unicode
 from spyne.protocol.html import HtmlPage
+from spyne.protocol.http import HttpRoute
 from spyne.service import ServiceBase
 
 from spynepi.const import FILES_PATH
@@ -49,13 +50,13 @@ from spynepi.entity.root import Package
 from spynepi.entity.root import Release
 from sqlalchemy.orm.exc import NoResultFound
 
-from werkzeug.routing import Rule
 
 TPL_DOWNLOAD = os.path.abspath(resource_filename("spynepi.const.template",
                                                                "download.html"))
 
+
 class IndexService(ServiceBase):
-    @rpc (_returns=Array(Index), _http_routes=[Rule("/",methods=["GET"])])
+    @rpc (_returns=Array(Index), _routes=[HttpRoute("/",verb="GET")])
     def index(ctx):
         idx = []
         packages = ctx.udc.session.query(Package).all()
@@ -68,6 +69,7 @@ class IndexService(ServiceBase):
             ))
 
         return idx
+
 
 def cache_packages(project_name):
     path = os.path.join(FILES_PATH,"files","tmp")
@@ -85,11 +87,11 @@ def cache_packages(project_name):
 
 
 class HtmlService(ServiceBase):
-    @rpc(Unicode, Unicode,_returns=Unicode, _http_routes=[
-            Rule("/<string:project_name>/<string:version>/"),
-            Rule("/<string:project_name>/<string:version>"),
-            Rule("/<string:project_name>/"),
-            Rule("/<string:project_name>")
+    @rpc(Unicode, Unicode,_returns=Unicode, _routes=[
+            HttpRoute("/<project_name>"),
+            HttpRoute("/<project_name>/"),
+            HttpRoute("/<project_name>/<version>"),
+            HttpRoute("/<project_name>/<version>/"),
         ])
     def download_html(ctx,project_name,version):
         ctx.transport.mime_type = "text/html"
@@ -109,7 +111,7 @@ class HtmlService(ServiceBase):
                     filter(Package.package_name==project_name).\
                     filter(Release.release_version==version).\
                     filter(Package.id==Release.package_id).all()
-            pack,ver = query[0]
+            pack, ver = query[0]
             download = HtmlPage(TPL_DOWNLOAD)
             download.title = project_name
             download.link.attrib["href"] = os.path.join(ver.rdf_about,"doap.rdf")
@@ -118,29 +120,35 @@ class HtmlService(ServiceBase):
             download.a.attrib["href"] = os.path.join("/",ver.distributions[0].content_path,
                 ver.distributions[0].content_name
                 + "#md5=" + ver.distributions[0].dist_md5)
+
         else:
-            package = ctx.udc.session.query(Package).filter_by(
-                                            package_name=project_name).one()
+            package = ctx.udc.session.query(Package) \
+                                     .filter_by(package_name=project_name).one()
 
             download = HtmlPage(TPL_DOWNLOAD)
             download.title = project_name
             download.link.attrib["href"] = os.path.join(package.releases[-1].rdf_about,"doap.rdf")
             download.h1 = project_name
             download.a = package.releases[-1].distributions[0].content_name
-            download.a.attrib["href"] = os.path.join("/",package.releases[-1].distributions[0].content_path,
-                package.releases[-1].distributions[0].content_name
-                + "#md5=" + package.releases[-1].distributions[0].dist_md5)
+            download.a.attrib["href"] = os.path.join("/",
+                package.releases[-1].distributions[0].content_path,
+                    "%s#md5=%s" % (
+                        package.releases[-1].distributions[0].content_name,
+                        package.releases[-1].distributions[0].dist_md5
+                    )
+                )
 
         return html.tostring(download.html)
 
-    @rpc(Unicode, Unicode, Unicode, _returns=File, _http_routes=[
-            Rule("/files/<string:project_name>/<string:version>/<string:file_name>")])
+    @rpc(Unicode, Unicode, Unicode, _returns=File, _routes=[
+            HttpRoute("/files/<project_name>/<version>/<file_name>")])
     def download_file(ctx, project_name, version, file_name):
         repository_path = os.path.join(FILES_PATH,"files")
         file_path = os.path.join(repository_path, project_name, version, file_name)
         file_path = os.path.abspath(file_path)
-        if not file_path.startswith(repository_path):
-            # This request tried to read arbitrary data from the filesystem
-            raise RequestNotAllowed(repr([project_name, version, file_name]))
-        return File(name=file_name, path=file_path)
 
+        if not file_path.startswith(repository_path):
+            # This request tried to read data from where it's not supposed to
+            raise RequestNotAllowed(repr([project_name, version, file_name]))
+
+        return File(name=file_name, path=file_path)

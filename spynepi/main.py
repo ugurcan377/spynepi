@@ -19,9 +19,10 @@
 # MA 02110-1301, USA.
 #
 
-import sys
 import logging
 logger = logging.getLogger(__name__)
+
+import sys
 
 from twisted.internet import reactor
 from twisted.web.server import Site
@@ -47,7 +48,8 @@ from spynepi.entity.root import Release
 from spynepi.entity.root import Distribution
 
 from werkzeug.exceptions import HTTPException
-from werkzeug.routing import Map,Rule
+from werkzeug.routing import Map
+from werkzeug.routing import Rule
 
 
 def TWsgiApplication(url_map):
@@ -68,7 +70,7 @@ def main(connection_string=DB_CONNECTION_STRING):
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 #    logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
-    index_app = Application([RootService,IndexService],"http://usefulinc.com/ns/doap#",
+    index_app = Application([RootService, IndexService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HtmlTable())
     rdf_app = Application([RdfService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=XmlObject())
@@ -106,15 +108,14 @@ def main(connection_string=DB_CONNECTION_STRING):
     wsgi_rdf = WsgiApplication(rdf_app)
     wsgi_html = WsgiApplication(html_app)
     url_map = Map([Rule("/", endpoint=wsgi_index),
-        Rule("/<project_name>/<version>/doap.rdf",endpoint=wsgi_rdf),
-        Rule("/<project_name>/doap.rdf",endpoint=wsgi_rdf),
-        Rule("/<project_name>/<version>/", endpoint=wsgi_html),
-        Rule("/<project_name>/<version>", endpoint=wsgi_html),
-        Rule("/<project_name>/", endpoint=wsgi_html),
         Rule("/<project_name>", endpoint=wsgi_html),
-        Rule("/files/<project_name>/<version>/<download>",
-                endpoint=wsgi_html),
-        ])
+        Rule("/<project_name>/", endpoint=wsgi_html),
+        Rule("/<project_name>/doap.rdf",endpoint=wsgi_rdf),
+        Rule("/<project_name>/<version>", endpoint=wsgi_html),
+        Rule("/<project_name>/<version>/", endpoint=wsgi_html),
+        Rule("/<project_name>/<version>/doap.rdf", endpoint=wsgi_rdf),
+        Rule("/files/<project_name>/<version>/<download>", endpoint=wsgi_html),
+    ])
 
     resource = WSGIResource(reactor, reactor, TWsgiApplication(url_map))
     site = Site(resource)
