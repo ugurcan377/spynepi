@@ -68,7 +68,7 @@ def main(connection_string=DB_CONNECTION_STRING):
     # configure logging
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-#    logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
+    # logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
     index_app = Application([RootService, IndexService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HtmlTable())
