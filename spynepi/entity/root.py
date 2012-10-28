@@ -37,7 +37,7 @@ from spyne.model.table import TableModel
 from spyne.model.primitive import String
 from spyne.model.primitive import Unicode
 from spyne.model.binary import File
-from spyne.protocol.http import HttpRoute
+from spyne.protocol.http import HttpPattern
 from spyne.service import ServiceBase
 
 from spynepi.const import TABLE_PREFIX
@@ -101,7 +101,7 @@ class Distribution(TableModel, DeclarativeBase):
 class RootService(ServiceBase):
     @rpc(Unicode, Unicode, Unicode, Unicode, File, Unicode, Unicode, Unicode,
          Unicode, Unicode, Unicode, Unicode, Unicode, Unicode, Unicode,
-         Unicode, Unicode, String, _http_routes=[HttpRoute("/",verb="POST")] )
+         Unicode, Unicode, String, _patterns=[HttpPattern("/",verb="POST")] )
     def register(ctx, name, license, author, home_page, content, comment,
             download_url, platform, description, metadata_version, author_email,
             md5_digest, filetype, pyversion, summary, version, protcol_version):

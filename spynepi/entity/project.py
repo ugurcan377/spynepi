@@ -25,7 +25,7 @@ import os
 from spyne.decorator import rpc
 from spyne.model.primitive import Unicode
 from spyne.service import ServiceBase
-from spyne.protocol.http import HttpRoute
+from spyne.protocol.http import HttpPattern
 
 from spynepi.core import Developer
 from spynepi.core import Person
@@ -38,9 +38,9 @@ from spynepi.entity.root import Release
 
 
 class RdfService(ServiceBase):
-    @rpc(Unicode, Unicode, _returns=Project, _routes=[
-            HttpRoute("/<project_name>/doap.rdf"),
-            HttpRoute("/<project_name>/<version>/doap.rdf"),
+    @rpc(Unicode, Unicode, _returns=Project, _patterns=[
+            HttpPattern("/<project_name>/doap.rdf"),
+            HttpPattern("/<project_name>/<version>/doap.rdf"),
         ])
     def get_doap(ctx, project_name, version):
         package = ctx.udc.session.query(Package).filter_by(package_name=project_name).one()

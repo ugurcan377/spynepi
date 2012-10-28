@@ -39,7 +39,7 @@ from spyne.model.complex import Array
 from spyne.model.primitive import AnyUri
 from spyne.model.primitive import Unicode
 from spyne.protocol.html import HtmlPage
-from spyne.protocol.http import HttpRoute
+from spyne.protocol.http import HttpPattern
 from spyne.service import ServiceBase
 
 from spynepi.const import FILES_PATH
@@ -56,7 +56,7 @@ TPL_DOWNLOAD = os.path.abspath(resource_filename("spynepi.const.template",
 
 
 class IndexService(ServiceBase):
-    @rpc (_returns=Array(Index), _routes=[HttpRoute("/",verb="GET")])
+    @rpc (_returns=Array(Index), _patterns=[HttpPattern("/",verb="GET")])
     def index(ctx):
         idx = []
         packages = ctx.udc.session.query(Package).all()
@@ -87,11 +87,11 @@ def cache_packages(project_name):
 
 
 class HtmlService(ServiceBase):
-    @rpc(Unicode, Unicode,_returns=Unicode, _routes=[
-            HttpRoute("/<project_name>"),
-            HttpRoute("/<project_name>/"),
-            HttpRoute("/<project_name>/<version>"),
-            HttpRoute("/<project_name>/<version>/"),
+    @rpc(Unicode, Unicode,_returns=Unicode, _patterns=[
+            HttpPattern("/<project_name>"),
+            HttpPattern("/<project_name>/"),
+            HttpPattern("/<project_name>/<version>"),
+            HttpPattern("/<project_name>/<version>/"),
         ])
     def download_html(ctx,project_name,version):
         ctx.transport.mime_type = "text/html"
@@ -140,8 +140,8 @@ class HtmlService(ServiceBase):
 
         return html.tostring(download.html)
 
-    @rpc(Unicode, Unicode, Unicode, _returns=File, _routes=[
-            HttpRoute("/files/<project_name>/<version>/<file_name>")])
+    @rpc(Unicode, Unicode, Unicode, _returns=File, _patterns=[
+            HttpPattern("/files/<project_name>/<version>/<file_name>")])
     def download_file(ctx, project_name, version, file_name):
         repository_path = os.path.join(FILES_PATH,"files")
         file_path = os.path.join(repository_path, project_name, version, file_name)
