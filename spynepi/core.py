@@ -21,14 +21,14 @@
 
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
+
 from spyne.model.primitive import AnyUri
-from spyne.model.primitive import UriValue
 from spyne.model.primitive import Date
-from spyne.model.primitive import Float
 from spyne.model.primitive import String
 from spyne.model.primitive import Unicode
 
 from spyne.util.odict import odict
+
 
 class RdfResource(XmlAttribute):
     __type_name__ = "resource"
@@ -48,12 +48,11 @@ class Version(ComplexModel):
         ("resource", RdfResource(String, ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#", attribute_of="file-release")),
     ])
 
-#print "!"*45,Version._type_info["file-release"].Attributes.resource
-
 
 class RdfAbout(XmlAttribute):
     __type_name__ = "about"
     __namespace__ = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+
 
 class Release(ComplexModel):
     __namespace__ = "http://usefulinc.com/ns/doap#"
@@ -94,8 +93,8 @@ class Project(ComplexModel):
         ('release', Release.customize(max_occurs=float('inf'))),
     ])
 
-class Index(ComplexModel):
 
+class Index(ComplexModel):
     _type_info = odict([
         ("Updated", Date),
         ("Package", AnyUri),

@@ -19,9 +19,10 @@
 # MA 02110-1301, USA.
 #
 
-import sys
 import logging
 logger = logging.getLogger(__name__)
+
+import sys
 
 from twisted.internet import reactor
 from twisted.web.server import Site
@@ -30,13 +31,13 @@ from twisted.web.wsgi import WSGIResource
 from spyne.application import Application
 from spyne.protocol.xml import XmlObject
 from spyne.protocol.html import HtmlTable
+from spyne.protocol.http import HttpRpc
 from spyne.server.wsgi import WsgiApplication
 
 from spynepi.const import DB_CONNECTION_STRING
 from spynepi.const import HOST
 from spynepi.const import PORT
 from spynepi.db import init_database
-from spynepi.protocol import HttpRpc
 from spynepi.entity.html import IndexService
 from spynepi.entity.html import HtmlService
 from spynepi.entity.project import RdfService
@@ -47,7 +48,8 @@ from spynepi.entity.root import Release
 from spynepi.entity.root import Distribution
 
 from werkzeug.exceptions import HTTPException
-from werkzeug.routing import Map,Rule
+from werkzeug.routing import Map
+from werkzeug.routing import Rule
 
 
 def TWsgiApplication(url_map):
@@ -66,9 +68,9 @@ def main(connection_string=DB_CONNECTION_STRING):
     # configure logging
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-#    logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
+    # logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
-    index_app = Application([RootService,IndexService],"http://usefulinc.com/ns/doap#",
+    index_app = Application([RootService, IndexService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HtmlTable())
     rdf_app = Application([RdfService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=XmlObject())
@@ -80,7 +82,6 @@ def main(connection_string=DB_CONNECTION_STRING):
     class UserDefinedContext(object):
         def __init__(self):
             self.session = db_handle.Session()
-
 
     def _on_method_call(ctx):
         ctx.udc = UserDefinedContext()
@@ -107,15 +108,14 @@ def main(connection_string=DB_CONNECTION_STRING):
     wsgi_rdf = WsgiApplication(rdf_app)
     wsgi_html = WsgiApplication(html_app)
     url_map = Map([Rule("/", endpoint=wsgi_index),
-        Rule("/<string:project_name>/<string:version>/doap.rdf",endpoint=wsgi_rdf),
-        Rule("/<string:project_name>/doap.rdf",endpoint=wsgi_rdf),
-        Rule("/<string:project_name>/<string:version>/", endpoint=wsgi_html),
-        Rule("/<string:project_name>/<string:version>", endpoint=wsgi_html),
-        Rule("/<string:project_name>/", endpoint=wsgi_html),
-        Rule("/<string:project_name>", endpoint=wsgi_html),
-        Rule("/files/<string:project_name>/<string:version>/<string:download>",
-                endpoint=wsgi_html),
-        ])
+        Rule("/<project_name>", endpoint=wsgi_html),
+        Rule("/<project_name>/", endpoint=wsgi_html),
+        Rule("/<project_name>/doap.rdf",endpoint=wsgi_rdf),
+        Rule("/<project_name>/<version>", endpoint=wsgi_html),
+        Rule("/<project_name>/<version>/", endpoint=wsgi_html),
+        Rule("/<project_name>/<version>/doap.rdf", endpoint=wsgi_rdf),
+        Rule("/files/<project_name>/<version>/<download>", endpoint=wsgi_html),
+    ])
 
     resource = WSGIResource(reactor, reactor, TWsgiApplication(url_map))
     site = Site(resource)
