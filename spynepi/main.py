@@ -98,11 +98,6 @@ def main(connection_string=DB_CONNECTION_STRING):
     html_app.event_manager.add_listener('method_call', _on_method_call)
     html_app.event_manager.add_listener('method_return_object', _on_method_return_object)
 
-    # configure database
-    Package.__table__.create(checkfirst=True)
-    Person.__table__.create(checkfirst=True)
-    Release.__table__.create(checkfirst=True)
-    Distribution.__table__.create(checkfirst=True)
 
     wsgi_index = WsgiApplication(index_app)
     wsgi_rdf = WsgiApplication(rdf_app)

@@ -15,5 +15,6 @@ def init_database(connection_string):
 
     metadata.bind = db
     Session = sessionmaker(bind=db)
+    metadata.create_all(checkfirst=True)
 
     return DatabaseHandle(db=db, Session=Session)
