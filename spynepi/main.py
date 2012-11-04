@@ -29,7 +29,7 @@ from twisted.web.server import Site
 from twisted.web.wsgi import WSGIResource
 
 from spyne.application import Application
-from spyne.protocol.xml import XmlObject
+from spyne.protocol.xml import XmlDocument
 from spyne.protocol.html import HtmlTable
 from spyne.protocol.http import HttpRpc
 from spyne.server.wsgi import WsgiApplication
@@ -73,7 +73,7 @@ def main(connection_string=DB_CONNECTION_STRING):
     index_app = Application([RootService, IndexService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HtmlTable())
     rdf_app = Application([RdfService],"http://usefulinc.com/ns/doap#",
-                                in_protocol=HttpRpc(), out_protocol=XmlObject())
+                                in_protocol=HttpRpc(), out_protocol=XmlDocument())
     html_app = Application([HtmlService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
