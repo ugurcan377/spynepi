@@ -1,20 +1,24 @@
 
 from collections import namedtuple
 
-from sqlalchemy import MetaData
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
+from spyne.model.complex import TTableModel
 from sqlalchemy.orm import sessionmaker
 
 DatabaseHandle = namedtuple("DatabaseHandle", ["db", "Session"])
-metadata = MetaData()
-DeclarativeBase = declarative_base(metadata=metadata)
+TableModel = TTableModel()
+
 
 def init_database(connection_string):
     db = create_engine(connection_string)
 
-    metadata.bind = db
+    TableModel.Attributes.sqla_metadata.bind = db
     Session = sessionmaker(bind=db)
-    metadata.create_all(checkfirst=True)
+
+    # So that metadata gets updated with table names.
+    import spynepi.entity.root
+    import spynepi.entity.project
+
+    TableModel.Attributes.sqla_metadata.create_all(checkfirst=True)
 
     return DatabaseHandle(db=db, Session=Session)

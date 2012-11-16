@@ -24,84 +24,87 @@ logger = logging.getLogger(__name__)
 
 import datetime
 import os
-import sqlalchemy
 
 from sqlalchemy import sql
-from sqlalchemy import ForeignKey
-from sqlalchemy import Column
-from sqlalchemy.orm import relationship
 
 from spyne.decorator import rpc
 from spyne.error import ArgumentError
-from spyne.model.table import TableModel
 from spyne.model.primitive import String
 from spyne.model.primitive import Unicode
-from spyne.model.binary import File
-from spyne.protocol.http import HttpPattern
 from spyne.service import ServiceBase
+
+from spyne.model.binary import File
+from spyne.model.complex import table
+from spyne.model.complex import Array
+from spyne.protocol.http import HttpPattern
+from spyne.model.primitive import Date
+from spyne.model.primitive import Integer32
 
 from spynepi.const import TABLE_PREFIX
 from spynepi.const import FILES_PATH
-
-from spynepi.db import DeclarativeBase
-
-class Package(TableModel, DeclarativeBase):
-    __tablename__ = "%s_package"  % TABLE_PREFIX
-
-    id = Column(sqlalchemy.Integer, primary_key=True)
-    package_name = Column(sqlalchemy.String(40))
-    package_cdate = Column(sqlalchemy.Date)
-    package_description = Column(sqlalchemy.UnicodeText())
-    rdf_about = Column(sqlalchemy.String(256))
-    owners = relationship("Person", backref="%s_package" % TABLE_PREFIX)
-    package_license = Column(sqlalchemy.String(40))
-    package_home_page = Column(sqlalchemy.String(256))
-    releases = relationship("Release", backref="%s_package" % TABLE_PREFIX)
+from spynepi.db import TableModel
 
 
-class Person(TableModel, DeclarativeBase):
+class Person(TableModel):
     __tablename__ = "%s_person"  % TABLE_PREFIX
+    __table_args__ = {"sqlite_autoincrement": True}
 
-    id = Column(sqlalchemy.Integer, primary_key=True)
-    person_name = Column(sqlalchemy.String(60))
-    person_email = Column(sqlalchemy.String(60))
-    package_id = Column(sqlalchemy.Integer, ForeignKey("%s_package.id" % TABLE_PREFIX))
-
-
-class Release(TableModel, DeclarativeBase):
-    __tablename__ = "%s_release"  % TABLE_PREFIX
-
-    id = Column(sqlalchemy.Integer, primary_key=True)
-    package_id = Column(sqlalchemy.Integer, ForeignKey("%s_package.id" % TABLE_PREFIX))
-    release_cdate = Column(sqlalchemy.Date)
-    rdf_about = Column(sqlalchemy.String(256))
-    release_version = Column(sqlalchemy.String(10))
-    meta_version = Column(sqlalchemy.String(10))
-    release_summary = Column(sqlalchemy.String(256))
-    release_platform = Column(sqlalchemy.String(30))
-    distributions = relationship("Distribution", backref="%s_release" % TABLE_PREFIX)
+    id = Integer32(primary_key=True)
+    person_name = String(60)
+    person_email = String(60)
 
 
-class Distribution(TableModel, DeclarativeBase):
+class Distribution(TableModel):
     __tablename__ = "%s_distribution"  % TABLE_PREFIX
+    __table_args__ = {"sqlite_autoincrement": True}
 
-    id = Column(sqlalchemy.Integer, primary_key=True)
-    release_id = Column(sqlalchemy.Integer, ForeignKey("%s_release.id" % TABLE_PREFIX))
+    id = Integer32(primary_key=True)
+
     # TO-DO Add Content data
-    content_name = Column(sqlalchemy.String(256))
-    content_path = Column(sqlalchemy.String(256))
-    dist_download_url = Column(sqlalchemy.String(256))
-    dist_comment = Column(sqlalchemy.String(256))
-    dist_file_type = Column(sqlalchemy.String(256))
-    dist_md5 = Column(sqlalchemy.String(256))
-    py_version = Column(sqlalchemy.String(10))
-    protocol_version = Column(sqlalchemy.String(10))
+    content_name = String(256)
+    content_path = String(256)
+    dist_download_url = String(256)
+    dist_comment = String(256)
+    dist_file_type = String(256)
+    dist_md5 = String(256)
+    py_version = String(10)
+    protocol_version = String(10)
+
+
+class Release(TableModel):
+    __tablename__ = "%s_release"  % TABLE_PREFIX
+    __table_args__ = {"sqlite_autoincrement": True}
+
+    id = Integer32(primary_key=True)
+    release_cdate = Date
+    rdf_about = String(256)
+    release_version = String(10)
+    meta_version = String(10)
+    release_summary = String(256)
+    release_platform = String(30)
+
+    distributions = Array(Distribution).store_as(table(right="release_id"))
+
+class Package(TableModel):
+    __tablename__ = "%s_package"  % TABLE_PREFIX
+    __table_args__ = {"sqlite_autoincrement": True}
+
+    id = Integer32(primary_key=True)
+    package_name = String(40)
+    package_cdate = Date
+    package_description = Unicode
+    rdf_about = Unicode(256)
+    package_license = Unicode(40)
+    package_home_page = String(256)
+
+    owners = Array(Person).store_as(table(right="owner_id"))
+    releases = Array(Release).store_as(table(right="package_id"))
 
 
 class RootService(ServiceBase):
     @rpc(Unicode, Unicode, Unicode, Unicode, File, Unicode, Unicode, Unicode,
          Unicode, Unicode, Unicode, Unicode, Unicode, Unicode, Unicode,
-         Unicode, Unicode, String, _patterns=[HttpPattern("/",verb="POST")] )
+         Unicode, Unicode, String, _patterns=[HttpPattern("/",verb="POST")])
     def register(ctx, name, license, author, home_page, content, comment,
             download_url, platform, description, metadata_version, author_email,
             md5_digest, filetype, pyversion, summary, version, protcol_version):

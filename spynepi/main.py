@@ -42,10 +42,6 @@ from spynepi.entity.html import IndexService
 from spynepi.entity.html import HtmlService
 from spynepi.entity.project import RdfService
 from spynepi.entity.root import RootService
-from spynepi.entity.root import Package
-from spynepi.entity.root import Person
-from spynepi.entity.root import Release
-from spynepi.entity.root import Distribution
 
 from werkzeug.exceptions import HTTPException
 from werkzeug.routing import Map
@@ -64,11 +60,12 @@ def TWsgiApplication(url_map):
 
     return _application
 
+
 def main(connection_string=DB_CONNECTION_STRING):
     # configure logging
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-    # logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
+    logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
     index_app = Application([RootService, IndexService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HtmlTable())
@@ -85,7 +82,6 @@ def main(connection_string=DB_CONNECTION_STRING):
 
     def _on_method_call(ctx):
         ctx.udc = UserDefinedContext()
-
 
     def _on_method_return_object(ctx):
         ctx.udc.session.commit()
