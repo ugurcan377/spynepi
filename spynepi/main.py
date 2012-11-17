@@ -69,8 +69,10 @@ def main(connection_string=DB_CONNECTION_STRING):
 
     index_app = Application([RootService, IndexService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HtmlTable())
+
     rdf_app = Application([RdfService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=XmlDocument())
+
     html_app = Application([HtmlService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
@@ -93,7 +95,6 @@ def main(connection_string=DB_CONNECTION_STRING):
     rdf_app.event_manager.add_listener('method_return_object', _on_method_return_object)
     html_app.event_manager.add_listener('method_call', _on_method_call)
     html_app.event_manager.add_listener('method_return_object', _on_method_return_object)
-
 
     wsgi_index = WsgiApplication(index_app)
     wsgi_rdf = WsgiApplication(rdf_app)
