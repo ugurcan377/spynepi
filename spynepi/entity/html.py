@@ -54,17 +54,13 @@ TPL_DOWNLOAD = os.path.abspath(resource_filename("spynepi.const.template",
 class IndexService(ServiceBase):
     @rpc (_returns=Array(Index), _patterns=[HttpPattern("/",verb="GET")])
     def index(ctx):
-        idx = []
-        packages = ctx.udc.session.query(Package).all()
-        for package in packages:
-            idx.append(Index(
+        return [Index(
                 Updated=package.package_cdate,
                 Package=AnyUri.Value(text=package.package_name,
                     href=package.releases[-1].rdf_about),
                 Description=package.package_description,
-            ))
+            ) for package in ctx.udc.session.query(Package)]
 
-        return idx
 
 
 def cache_packages(project_name):
