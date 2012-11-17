@@ -29,7 +29,7 @@ from twisted.web.server import Site
 from twisted.web.wsgi import WSGIResource
 
 from spyne.application import Application
-from spyne.protocol.xml import XmlObject
+from spyne.protocol.xml import XmlDocument
 from spyne.protocol.html import HtmlTable
 from spyne.protocol.http import HttpRpc
 from spyne.server.wsgi import WsgiApplication
@@ -42,10 +42,6 @@ from spynepi.entity.html import IndexService
 from spynepi.entity.html import HtmlService
 from spynepi.entity.project import RdfService
 from spynepi.entity.root import RootService
-from spynepi.entity.root import Package
-from spynepi.entity.root import Person
-from spynepi.entity.root import Release
-from spynepi.entity.root import Distribution
 
 from werkzeug.exceptions import HTTPException
 from werkzeug.routing import Map
@@ -64,16 +60,17 @@ def TWsgiApplication(url_map):
 
     return _application
 
+
 def main(connection_string=DB_CONNECTION_STRING):
     # configure logging
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-    # logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
+    logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
     index_app = Application([RootService, IndexService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HtmlTable())
     rdf_app = Application([RdfService],"http://usefulinc.com/ns/doap#",
-                                in_protocol=HttpRpc(), out_protocol=XmlObject())
+                                in_protocol=HttpRpc(), out_protocol=XmlDocument())
     html_app = Application([HtmlService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
@@ -86,7 +83,6 @@ def main(connection_string=DB_CONNECTION_STRING):
     def _on_method_call(ctx):
         ctx.udc = UserDefinedContext()
 
-
     def _on_method_return_object(ctx):
         ctx.udc.session.commit()
         ctx.udc.session.close()
@@ -98,11 +94,6 @@ def main(connection_string=DB_CONNECTION_STRING):
     html_app.event_manager.add_listener('method_call', _on_method_call)
     html_app.event_manager.add_listener('method_return_object', _on_method_return_object)
 
-    # configure database
-    Package.__table__.create(checkfirst=True)
-    Person.__table__.create(checkfirst=True)
-    Release.__table__.create(checkfirst=True)
-    Distribution.__table__.create(checkfirst=True)
 
     wsgi_index = WsgiApplication(index_app)
     wsgi_rdf = WsgiApplication(rdf_app)

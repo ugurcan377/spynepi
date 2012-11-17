@@ -143,7 +143,7 @@ class HtmlService(ServiceBase):
     @rpc(Unicode, Unicode, Unicode, _returns=File, _patterns=[
             HttpPattern("/files/<project_name>/<version>/<file_name>")])
     def download_file(ctx, project_name, version, file_name):
-        repository_path = os.path.join(FILES_PATH,"files")
+        repository_path = os.path.abspath(os.path.join(FILES_PATH,"files"))
         file_path = os.path.join(repository_path, project_name, version, file_name)
         file_path = os.path.abspath(file_path)
 
@@ -151,4 +151,4 @@ class HtmlService(ServiceBase):
             # This request tried to read data from where it's not supposed to
             raise RequestNotAllowed(repr([project_name, version, file_name]))
 
-        return File(name=file_name, path=file_path)
+        return File.Value(name=file_name, path=file_path)
