@@ -16,7 +16,14 @@ License  : BSD (See COPYING)
 
 __docformat__ = 'restructuredtext'
 
+import logging
+logger = logging.getLogger(__name__)
+
+import os
+import time
+import urllib
 import re
+
 import platform
 if platform.python_version().startswith('2'):
     import xmlrpclib
@@ -26,15 +33,10 @@ else:
     import xmlrpc.client as xmlrpclib
     import pickle
     import urllib.request as urllib2
-import os
-import time
-import logging
-import urllib
-
-from yolk.utils import get_yolk_dir
 
 
 XML_RPC_SERVER = 'http://pypi.python.org/pypi'
+
 
 class addinfourl(urllib2.addinfourl):
     """
@@ -60,8 +62,7 @@ urllib2.addinfourl = addinfourl
 
 
 class ProxyTransport(xmlrpclib.Transport):
-    """
-    Provides an XMl-RPC transport routing via a http proxy.
+    """Provides an XMl-RPC transport routing via a http proxy.
 
     This is done by using urllib2, which in turn uses the environment
     varable http_proxy and whatever else it is built to use (e.g. the
@@ -83,6 +84,7 @@ class ProxyTransport(xmlrpclib.Transport):
         url = 'http://' + host + handler
         request = urllib2.Request(url)
         request.add_data(request_body)
+        logger.debug("request_body: %r", request_body)
         # Note: 'Host' and 'Content-Length' are added automatically
         request.add_header('User-Agent', self.user_agent)
         request.add_header('Content-Type', 'text/xml')
@@ -118,72 +120,27 @@ def check_proxy_setting():
 
 
 class CheeseShop(object):
-
     """Interface to Python Package Index"""
 
-    def __init__(self, debug=False, no_cache=False, yolk_dir=None):
-        self.debug = debug
-        self.no_cache = no_cache
-        if yolk_dir:
-            self.yolk_dir = yolk_dir
-        else:
-            self.yolk_dir = get_yolk_dir()
-        self.xmlrpc = self.get_xmlrpc_server()
-        self.pkg_cache_file = self.get_pkg_cache_file()
-        self.last_sync_file = self.get_last_sync_file()
-        self.pkg_list = None
-        self.logger = logging.getLogger("yolk")
-        self.get_cache()
-
-    def get_cache(self):
-        """
-        Get a package name list from disk cache or PyPI
-        """
-        #This is used by external programs that import `CheeseShop` and don't
-        #want a cache file written to ~/.pypi and query PyPI every time.
-        if self.no_cache:
-            self.pkg_list = self.list_packages()
-            return
-
-        if not os.path.exists(self.yolk_dir):
-            os.mkdir(self.yolk_dir)
-        if os.path.exists(self.pkg_cache_file):
-            self.pkg_list = self.query_cached_package_list()
-        else:
-            self.logger.debug("DEBUG: Fetching package list cache from PyPi...")
-            self.fetch_pkg_list()
-
-    def get_last_sync_file(self):
-        """
-        Get the last time in seconds since The Epoc since the last pkg list sync
-        """
-        return os.path.abspath(self.yolk_dir + "/last_sync")
-
-    def get_xmlrpc_server(self):
-        """
-        Returns PyPI's XML-RPC server instance
-        """
+    def __init__(self):
         check_proxy_setting()
-        if os.environ.has_key('XMLRPC_DEBUG'):
+
+        if logger.level == logging.DEBUG:
             debug = 1
         else:
             debug = 0
-        try:
-            return xmlrpclib.Server(XML_RPC_SERVER, transport=ProxyTransport(), verbose=debug)
-        except IOError:
-            self.logger("ERROR: Can't connect to XML-RPC server: %s" \
-                    % XML_RPC_SERVER)
 
-    def get_pkg_cache_file(self):
-        """
-        Returns filename of pkg cache
-        """
-        return os.path.abspath('%s/pkg_list.pkl' % self.yolk_dir)
+        try:
+            self.xmlrpc = xmlrpclib.Server(XML_RPC_SERVER,
+                                      transport=ProxyTransport(), verbose=debug)
+        except IOError:
+            logger("ERROR: Can't connect to XML-RPC server: %s" \
+                    % XML_RPC_SERVER)
 
     def query_versions_pypi(self, package_name):
         """Fetch list of available versions for a package from The CheeseShop"""
         if not package_name in self.pkg_list:
-            self.logger.debug("Package %s not in cache, querying PyPI..." \
+            logger.debug("Package %s not in cache, querying PyPI..." \
                     % package_name)
             self.fetch_pkg_list()
         #I have to set version=[] for edge cases like "Magic file extensions"
@@ -193,21 +150,15 @@ class CheeseShop(object):
         for pypi_pkg in self.pkg_list:
             if pypi_pkg.lower() == package_name.lower():
                 if self.debug:
-                    self.logger.debug("DEBUG: %s" % package_name)
+                    logger.debug("DEBUG: %s" % package_name)
                 versions = self.package_releases(pypi_pkg)
                 package_name = pypi_pkg
                 break
         return (package_name, versions)
 
-    def query_cached_package_list(self):
-        """Return list of pickled package names from PYPI"""
-        if self.debug:
-            self.logger.debug("DEBUG: reading pickled cache file")
-        return cPickle.load(open(self.pkg_cache_file, "r"))
-
     def fetch_pkg_list(self):
         """Fetch and cache master list of package names from PYPI"""
-        self.logger.debug("DEBUG: Fetching package name list from PyPI")
+        logger.debug("DEBUG: Fetching package name list from PyPI")
         package_list = self.list_packages()
         cPickle.dump(package_list, open(self.pkg_cache_file, "w"))
         self.pkg_list = package_list
@@ -245,7 +196,7 @@ class CheeseShop(object):
     def package_releases(self, package_name):
         """Query PYPI via XMLRPC interface for a pkg's available versions"""
         if self.debug:
-            self.logger.debug("DEBUG: querying PyPI for versions of " \
+            logger.debug("DEBUG: querying PyPI for versions of " \
                     + package_name)
         return self.xmlrpc.package_releases(package_name)
 
