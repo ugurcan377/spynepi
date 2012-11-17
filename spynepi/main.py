@@ -47,6 +47,9 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.routing import Map
 from werkzeug.routing import Rule
 
+from sqlalchemy.orm.exc import NoResultFound
+from spyne.error import ResourceNotFoundError
+
 
 def TWsgiApplication(url_map):
     def _application(environ, start_response, wsgi_url=None):
@@ -61,19 +64,31 @@ def TWsgiApplication(url_map):
     return _application
 
 
+class MyApplication(Application):
+    def call_wrapper(self, ctx):
+        """This is the application-wide exception transforming function."""
+
+        try:
+            return Application.call_wrapper(self, ctx)
+
+        except NoResultFound, e:
+            ctx.out_string = ["Resource not found"]
+            raise ResourceNotFoundError() # Return HTTP 404
+
+
 def main(connection_string=DB_CONNECTION_STRING):
     # configure logging
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-    logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
+    #logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
-    index_app = Application([RootService, IndexService],"http://usefulinc.com/ns/doap#",
+    index_app = MyApplication([RootService, IndexService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HtmlTable())
 
-    rdf_app = Application([RdfService],"http://usefulinc.com/ns/doap#",
+    rdf_app = MyApplication([RdfService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
-    html_app = Application([HtmlService],"http://usefulinc.com/ns/doap#",
+    html_app = MyApplication([HtmlService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
     db_handle = init_database(connection_string)
