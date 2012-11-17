@@ -127,11 +127,15 @@ class RootService(ServiceBase):
 
         if body[":action"][0] == "file_upload":
             if exists:
-                rel = ctx.udc.session.query(Release).join(Package).filter(sql.and_
-                    (Package.package_name == name,
-                    Release.release_version == version)).all()
-                rel[0].distributions.append(generate_dist())
+                rel = ctx.udc.session.query(Release).join(Package).filter(
+                    sql.and_(
+                        Package.package_name == name,
+                        Release.release_version == version)
+                    ).first()
+
+                rel.distributions.append(generate_dist())
                 package_content()
+
             else:
                 package = generate_package()
                 package.owners.append(generate_person())

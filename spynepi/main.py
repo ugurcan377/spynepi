@@ -97,23 +97,32 @@ def main(connection_string=DB_CONNECTION_STRING):
         def __init__(self):
             self.session = db_handle.Session()
 
+        def close(self):
+            self.session.close()
+
+    # this is called after validation
     def _on_method_call(ctx):
         ctx.udc = UserDefinedContext()
 
+    # this is called once all data is sent to the client.
     def _on_method_return_object(ctx):
         ctx.udc.session.commit()
-        ctx.udc.session.close()
+    def _on_wsgi_close(ctx):
+        if ctx.udc is not None:
+            ctx.udc.close()
 
-    index_app.event_manager.add_listener('method_call', _on_method_call)
-    index_app.event_manager.add_listener('method_return_object', _on_method_return_object)
-    rdf_app.event_manager.add_listener('method_call', _on_method_call)
-    rdf_app.event_manager.add_listener('method_return_object', _on_method_return_object)
-    html_app.event_manager.add_listener('method_call', _on_method_call)
-    html_app.event_manager.add_listener('method_return_object', _on_method_return_object)
+    for app in index_app, rdf_app, html_app:
+        app.event_manager.add_listener('method_call', _on_method_call)
+        app.event_manager.add_listener('method_return_object', _on_method_return_object)
 
     wsgi_index = WsgiApplication(index_app)
     wsgi_rdf = WsgiApplication(rdf_app)
     wsgi_html = WsgiApplication(html_app)
+
+    for a in wsgi_index,wsgi_rdf,wsgi_html:
+        a.event_manager.add_listener('wsgi_close', _on_wsgi_close)
+
+
     url_map = Map([Rule("/", endpoint=wsgi_index),
         Rule("/<project_name>", endpoint=wsgi_html),
         Rule("/<project_name>/", endpoint=wsgi_html),
