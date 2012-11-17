@@ -58,6 +58,7 @@ class Release(TableModel):
 
     distributions = Array(Distribution).store_as(table(right="release_id"))
 
+
 class Package(TableModel):
     __tablename__ = "%s_package"  % TABLE_PREFIX
     __table_args__ = {"sqlite_autoincrement": True}

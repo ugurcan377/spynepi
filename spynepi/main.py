@@ -47,6 +47,9 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.routing import Map
 from werkzeug.routing import Rule
 
+from sqlalchemy.orm.exc import NoResultFound
+from spyne.error import ResourceNotFoundError
+
 
 def TWsgiApplication(url_map):
     def _application(environ, start_response, wsgi_url=None):
@@ -61,19 +64,31 @@ def TWsgiApplication(url_map):
     return _application
 
 
+class MyApplication(Application):
+    def call_wrapper(self, ctx):
+        """This is the application-wide exception transforming function."""
+
+        try:
+            return Application.call_wrapper(self, ctx)
+
+        except NoResultFound, e:
+            ctx.out_string = ["Resource not found"]
+            raise ResourceNotFoundError() # Return HTTP 404
+
+
 def main(connection_string=DB_CONNECTION_STRING):
     # configure logging
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-    logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
+    #logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
-    index_app = Application([RootService, IndexService],"http://usefulinc.com/ns/doap#",
+    index_app = MyApplication([RootService, IndexService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HtmlTable())
 
-    rdf_app = Application([RdfService],"http://usefulinc.com/ns/doap#",
+    rdf_app = MyApplication([RdfService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
-    html_app = Application([HtmlService],"http://usefulinc.com/ns/doap#",
+    html_app = MyApplication([HtmlService],"http://usefulinc.com/ns/doap#",
                                 in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
     db_handle = init_database(connection_string)
@@ -82,23 +97,32 @@ def main(connection_string=DB_CONNECTION_STRING):
         def __init__(self):
             self.session = db_handle.Session()
 
+        def close(self):
+            self.session.close()
+
+    # this is called after validation
     def _on_method_call(ctx):
         ctx.udc = UserDefinedContext()
 
+    # this is called once all data is sent to the client.
     def _on_method_return_object(ctx):
         ctx.udc.session.commit()
-        ctx.udc.session.close()
+    def _on_wsgi_close(ctx):
+        if ctx.udc is not None:
+            ctx.udc.close()
 
-    index_app.event_manager.add_listener('method_call', _on_method_call)
-    index_app.event_manager.add_listener('method_return_object', _on_method_return_object)
-    rdf_app.event_manager.add_listener('method_call', _on_method_call)
-    rdf_app.event_manager.add_listener('method_return_object', _on_method_return_object)
-    html_app.event_manager.add_listener('method_call', _on_method_call)
-    html_app.event_manager.add_listener('method_return_object', _on_method_return_object)
+    for app in index_app, rdf_app, html_app:
+        app.event_manager.add_listener('method_call', _on_method_call)
+        app.event_manager.add_listener('method_return_object', _on_method_return_object)
 
     wsgi_index = WsgiApplication(index_app)
     wsgi_rdf = WsgiApplication(rdf_app)
     wsgi_html = WsgiApplication(html_app)
+
+    for a in wsgi_index,wsgi_rdf,wsgi_html:
+        a.event_manager.add_listener('wsgi_close', _on_wsgi_close)
+
+
     url_map = Map([Rule("/", endpoint=wsgi_index),
         Rule("/<project_name>", endpoint=wsgi_html),
         Rule("/<project_name>/", endpoint=wsgi_html),
