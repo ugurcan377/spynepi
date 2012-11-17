@@ -46,8 +46,8 @@ from spynepi.const import FILES_PATH
 from spynepi.const import REPO_NAME
 from spynepi.core import Index
 from spynepi.core import Release
-from spynepi.entity.root import Package
-from spynepi.entity.root import Release
+from spynepi.db import Package
+from spynepi.db import Release
 from sqlalchemy.orm.exc import NoResultFound
 
 
