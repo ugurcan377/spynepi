@@ -96,15 +96,8 @@ class HtmlService(ServiceBase):
     def download_html(ctx,project_name,version):
         ctx.transport.mime_type = "text/html"
 
-        try:
-            ctx.udc.session.query(Package).filter_by(
-                                            package_name=project_name).one()
-        except NoResultFound:
-            try:
-                data = urlopen("http://pypi.python.org/simple/%s"%(project_name)).read()
-                cache_packages(project_name)
-            except HTTPError:
-                raise ResourceNotFoundError()
+        ctx.udc.session.query(Package).filter_by(
+                                                package_name=project_name).one()
 
         if version:
             query = ctx.udc.session.query(Package,Release).\
