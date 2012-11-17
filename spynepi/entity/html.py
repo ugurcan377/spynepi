@@ -72,7 +72,7 @@ def cache_packages(project_name):
     if not os.path.exists(path):
         os.makedirs(path)
 
-    easy_install(["--user","-U","--build-directory",path,project_name])
+    easy_install(["--user", "-U", "--build-directory", path, project_name])
     dpath = os.path.join(path,project_name)
     dpath = os.path.abspath(dpath)
 
