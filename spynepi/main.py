@@ -72,6 +72,7 @@ class MyApplication(Application):
             return Application.call_wrapper(self, ctx)
 
         except NoResultFound, e:
+            logger.exception(e)
             ctx.out_string = ["Resource not found"]
             raise ResourceNotFoundError() # Return HTTP 404
 

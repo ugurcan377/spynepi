@@ -19,15 +19,22 @@
 # MA 02110-1301, USA.
 #
 
+import logging
+logger = logging.getLogger(__name__)
+
 import os
+import shutil
+import tempfile
 import subprocess
 
 from lxml import html
 from sqlalchemy import sql
 
+from spyne.error import ValidationError
+
 from pkg_resources import resource_filename
 
-from setuptools.command.easy_install import main as easy_install
+from sqlalchemy.orm.exc import NoResultFound
 
 from spyne.decorator import rpc
 from spyne.error import RequestNotAllowed
@@ -63,22 +70,35 @@ class IndexService(ServiceBase):
 
 
 
-def cache_packages(project_name):
-    path = os.path.join(FILES_PATH,"files","tmp")
-    if not os.path.exists(path):
-        os.makedirs(path)
+def cache_package(spec):
+    from glob import glob
+    from setuptools.command.easy_install import main as easy_install
 
-    easy_install(["--user", "-U", "--build-directory", path, project_name])
-    dpath = os.path.join(path,project_name)
-    dpath = os.path.abspath(dpath)
+    path = tempfile.mkdtemp('.spynepi')
+    easy_install(["--user", "-U", "--editable", "--build-directory",
+                                                           path, spec])
 
-    if not dpath.startswith(path):
-        # This request tried to read arbitrary data from the filesystem
-        raise RequestNotAllowed(repr([project_name,]))
+    # plagiarized from setuptools
+    try:
+        setups = glob(os.path.join(path, '*', 'setup.py'))
+        if not setups:
+            raise ValidationError(
+                "Couldn't find a setup script in %r editable distribution: %r" %
+                                                    (spec, os.path.join(path,'*'))
+            )
+        if len(setups)>1:
+            raise ValidationError(
+                "Multiple setup scripts in found in %r editable distribution: %r" %
+                                                    (spec, setups)
+            )
 
-    command = ["python", "setup.py", "register", "-r", REPO_NAME, "sdist",
-                                                "upload", "-r", REPO_NAME]
-    subprocess.call(command, cwd=dpath)
+        command = ["python", "setup.py", "register", "-r", REPO_NAME, "sdist",
+                                                     "upload", "-r", REPO_NAME]
+        logger.info('calling %r', command)
+        subprocess.call(command, cwd=os.path.dirname(setups[0]))
+
+    finally:
+        shutil.rmtree(path)
 
 
 class HtmlService(ServiceBase):
@@ -88,14 +108,18 @@ class HtmlService(ServiceBase):
             HttpPattern("/<project_name>/<version>"),
             HttpPattern("/<project_name>/<version>/"),
         ])
-    def download_html(ctx,project_name,version):
+    def download_html(ctx, project_name, version):
         ctx.transport.mime_type = "text/html"
 
-        ctx.udc.session.query(Package).filter_by(
+        try:
+            ctx.udc.session.query(Package).filter_by(
                                                 package_name=project_name).one()
+        except NoResultFound:
+            cache_package(project_name)
 
         download = HtmlPage(TPL_DOWNLOAD)
         download.title = project_name
+
 
         if version:
             release = ctx.udc.session.query(Release).join(Package).filter(
