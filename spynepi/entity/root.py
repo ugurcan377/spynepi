@@ -29,6 +29,7 @@ from sqlalchemy import sql
 
 from spyne.decorator import rpc
 from spyne.error import ArgumentError
+from spyne.error import ResourceNotFoundError
 from spyne.model.primitive import String
 from spyne.model.primitive import Unicode
 from spyne.service import ServiceBase
@@ -133,6 +134,8 @@ class RootService(ServiceBase):
                         Release.release_version == version)
                     ).first()
 
+                if rel is None:
+                    raise ResourceNotFoundError(name)
                 rel.distributions.append(generate_dist())
                 package_content()
 

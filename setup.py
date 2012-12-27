@@ -30,7 +30,7 @@ setup(
     license='GPL',
 
     install_requires=[
-        "spyne<2.99", "sqlalchemy<0.8", "werkzeug", "twisted",
+        "spyne>=2.10", "sqlalchemy<0.8", "werkzeug", "twisted",
     ],
     include_package_data=True,
     entry_points = {

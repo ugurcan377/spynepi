@@ -19,15 +19,22 @@
 # MA 02110-1301, USA.
 #
 
+import logging
+logger = logging.getLogger(__name__)
+
 import os
-import subprocess
+import shutil
+import tempfile
 
 from lxml import html
 from sqlalchemy import sql
 
+from spyne.error import ValidationError
+from spyne.util import reconstruct_url
+
 from pkg_resources import resource_filename
 
-from setuptools.command.easy_install import main as easy_install
+from sqlalchemy.orm.exc import NoResultFound
 
 from spyne.decorator import rpc
 from spyne.error import RequestNotAllowed
@@ -54,49 +61,110 @@ TPL_DOWNLOAD = os.path.abspath(resource_filename("spynepi.const.template",
 class IndexService(ServiceBase):
     @rpc (_returns=Array(Index), _patterns=[HttpPattern("/",verb="GET")])
     def index(ctx):
-        idx = []
-        packages = ctx.udc.session.query(Package).all()
-        for package in packages:
-            idx.append(Index(
+        return [Index(
                 Updated=package.package_cdate,
                 Package=AnyUri.Value(text=package.package_name,
                     href=package.releases[-1].rdf_about),
                 Description=package.package_description,
-            ))
-
-        return idx
+            ) for package in ctx.udc.session.query(Package)]
 
 
-def cache_packages(project_name):
-    path = os.path.join(FILES_PATH,"files","tmp")
-    if not os.path.exists(path):
-        os.makedirs(path)
+def cache_package(spec, own_url):
+    from glob import glob
+    from setuptools.command.easy_install import main as easy_install
+    from distutils.core import run_setup
+    import ConfigParser
 
-    easy_install(["--user","-U","--build-directory",path,project_name])
-    dpath = os.path.join(path,project_name)
-    dpath = os.path.abspath(dpath)
+    path = tempfile.mkdtemp('.spynepi')
+    easy_install(["--user", "-U", "--editable", "--build-directory",
+                                                           path, spec])
 
-    if not dpath.startswith(path):
-        # This request tried to read arbitrary data from the filesystem
-        raise RequestNotAllowed(repr([project_name,]))
+    if os.environ.has_key('HOME'):
+        rc = os.path.join(os.environ['HOME'], '.pypirc')
+        config = ConfigParser.ConfigParser()
 
-    command = ["python", "setup.py", "register", "-r", REPO_NAME, "sdist",
-                                                "upload", "-r", REPO_NAME]
-    subprocess.call(command, cwd=dpath)
+        if os.path.exists(rc):
+            config.read(rc)
+
+        try:
+            config.add_section(REPO_NAME)
+
+            config.set(REPO_NAME, 'repository', own_url)
+            config.set(REPO_NAME, 'username', 'x')
+            config.set(REPO_NAME, 'password', 'y')
+
+        except ConfigParser.DuplicateSectionError:
+            pass
+
+        try:
+            config.add_section('distutils')
+        except ConfigParser.DuplicateSectionError:
+            pass
+
+        try:
+            index_servers = config.get('distutils', 'index-servers')
+            index_servers = index_servers.split('\n')
+            if 'spynepi' not in index_servers:
+                index_servers.append(REPO_NAME)
+
+        except ConfigParser.NoOptionError:
+            index_servers = [REPO_NAME]
+
+        config.set('distutils', 'index-servers', '\n'.join(index_servers))
+
+        config.write(open(rc,'w'))
+
+    else: # FIXME: ??? No idea. Hopefully setuptools knows better.
+        pass # raise NotImplementedError("$HOME not defined, .pypirc not found.")
+
+    try:
+        # plagiarized from setuptools
+        setups = glob(os.path.join(path, '*', 'setup.py'))
+        if not setups:
+            raise ValidationError(
+                "Couldn't find a setup script in %r editable distribution: %r" %
+                                                    (spec, os.path.join(path,'*'))
+            )
+
+        if len(setups)>1:
+            raise ValidationError(
+                "Multiple setup scripts in found in %r editable distribution: %r" %
+                                                    (spec, setups)
+            )
+
+        lib_dir =os.path.dirname(setups[0])
+        os.chdir(lib_dir)
+        dist = run_setup(setups[0])
+        dist.commands = ['register', 'sdist', 'upload']
+        dist.command_options = {
+            'register': {'repository': ('command line', 'spynepi')},
+            'upload': {'repository': ('command line', 'spynepi')},
+            'sdist': {},
+        }
+
+        dist.run_commands()
+
+
+    finally:
+        shutil.rmtree(path)
 
 
 class HtmlService(ServiceBase):
-    @rpc(Unicode, Unicode,_returns=Unicode, _patterns=[
+    @rpc(Unicode, Unicode, _returns=Unicode, _patterns=[
             HttpPattern("/<project_name>"),
             HttpPattern("/<project_name>/"),
             HttpPattern("/<project_name>/<version>"),
             HttpPattern("/<project_name>/<version>/"),
         ])
-    def download_html(ctx,project_name,version):
+    def download_html(ctx, project_name, version):
         ctx.transport.mime_type = "text/html"
 
-        ctx.udc.session.query(Package).filter_by(
+        try:
+            ctx.udc.session.query(Package).filter_by(
                                                 package_name=project_name).one()
+        except NoResultFound:
+            cache_package(project_name, reconstruct_url(ctx.transport.req_env,
+                                                  path=False, query_string=False))
 
         download = HtmlPage(TPL_DOWNLOAD)
         download.title = project_name
