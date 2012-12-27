@@ -54,7 +54,7 @@ And you can download packages with: ::
 
 
 Configuration
------
+-------------
 
 Config file for spynepi can be found inside ``spynepi/const/__init__.py`` 
 
