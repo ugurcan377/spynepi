@@ -59,6 +59,7 @@ Configuration
 Config file for spynepi can be found inside ``spynepi/const/__init__.py`` 
 
 * DB_CONNECTION_STRING : Default database for spynepi is sqlite. If you wish to use a different database you can change this line. It must be an sqlalchemy compatiable database connection string
+  
   For detatils please read http://docs.sqlalchemy.org/en/rel_0_7/core/engines.html  
 
   Example: for postgres ``postgresql://user:password@localhost:5432/database_name``
