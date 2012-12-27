@@ -83,14 +83,14 @@ def main(connection_string=DB_CONNECTION_STRING):
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
     #logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
-    index_app = MyApplication([RootService, IndexService],"http://usefulinc.com/ns/doap#",
-                                in_protocol=HttpRpc(), out_protocol=HtmlTable())
+    index_app = MyApplication([RootService, IndexService], "http://usefulinc.com/ns/doap#",
+                            in_protocol=HttpRpc(), out_protocol=HtmlTable())
 
-    rdf_app = MyApplication([RdfService],"http://usefulinc.com/ns/doap#",
-                                in_protocol=HttpRpc(), out_protocol=XmlDocument())
+    rdf_app = MyApplication([RdfService], "http://usefulinc.com/ns/doap#",
+                            in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
     html_app = MyApplication([HtmlService],"http://usefulinc.com/ns/doap#",
-                                in_protocol=HttpRpc(), out_protocol=HttpRpc())
+                            in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
     db_handle = init_database(connection_string)
 
@@ -108,6 +108,7 @@ def main(connection_string=DB_CONNECTION_STRING):
     # this is called once all data is sent to the client.
     def _on_method_return_object(ctx):
         ctx.udc.session.commit()
+
     def _on_wsgi_close(ctx):
         if ctx.udc is not None:
             ctx.udc.close()
@@ -122,7 +123,6 @@ def main(connection_string=DB_CONNECTION_STRING):
 
     for a in wsgi_index,wsgi_rdf,wsgi_html:
         a.event_manager.add_listener('wsgi_close', _on_wsgi_close)
-
 
     url_map = Map([Rule("/", endpoint=wsgi_index),
         Rule("/<project_name>", endpoint=wsgi_html),
