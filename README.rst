@@ -24,7 +24,7 @@ You can get spynepi via pypi: ::
 
 or you can clone from github: ::
 
-    git clone git://github.com/ugurcan377/spynepi.git
+    git clone git://github.com/arskom/spynepi.git
 
 or get the source distribution from one of the download sites and unpack it.
 
@@ -37,47 +37,6 @@ use: ::
 
     python setup.py develop
 
-Setup
------
-
-Assuming you are running your site locally for now, add the following to 
-your ``~/.pypirc`` file::
-
-    [distutils]
-    index-servers =
-        pypi
-        local
-
-    [pypi]
-    username:user
-    password:secret
-
-    [local]
-    username:user
-    password:secret
-    repository:http://localhost:7789
-
-Then you must set some settings for spynepi which is inside ``spynepi/const/__init__.py`` 
-
-* DB_CONNECTION_STRING : Must be an sqlalchemy compatiable database connection string
-  For detatils please read http://docs.sqlalchemy.org/en/rel_0_7/core/engines.html  
-
-  Example: for postgres ``postgresql://user:password@localhost:5432/database_name``
-
-* FILES_PATH : An (absolute) path which packages will be stored  
-  
-  Example: ``/home/foo/workspace/spynepi``
-
-* HOST : Thank you Captain Obvious.  
-  Default is 0.0.0.0
-
-* PORT : Thanks again you're awesome.  
-  Default is 7789
-
-* REPO_NAME: The repository name you wrote in pypirc
-
-* TABLE_PREFIX: Prefix for tables which sqlalchemy will create
-
 Using Spynepi
 -------------
 
@@ -87,10 +46,32 @@ You can start spynepi with: ::
 
 You can upload packages with: ::  
 
-    $ python setup.py register -r local sdist upload -r local
+    $ python setup.py register -r local sdist upload -r spynepi
 
 And you can download packages with: ::  
     
     $ easy_install --user -U -i http://localhost:7789 package
 
+
+Configuration
+-----
+
+Config file for spynepi can be found inside ``spynepi/const/__init__.py`` 
+
+* DB_CONNECTION_STRING : Default database for spynepi is sqlite. If you wish to use a different database you can change this line. It must be an sqlalchemy compatiable database connection string
+  For detatils please read http://docs.sqlalchemy.org/en/rel_0_7/core/engines.html  
+
+  Example: for postgres ``postgresql://user:password@localhost:5432/database_name``
+
+* FILES_PATH : Path which packages will be stored in default it creates a file named files
+
+* HOST : Thank you Captain Obvious.  
+  Default is 0.0.0.0
+
+* PORT : Thanks again you're awesome.  
+  Default is 7789
+
+* REPO_NAME: The repository name you will use to upload or download packages in default it is spynepi. 
+
+* TABLE_PREFIX: Prefix for tables which sqlalchemy will create
 
