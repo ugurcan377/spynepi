@@ -31,6 +31,7 @@ from lxml import html
 from sqlalchemy import sql
 
 from spyne.error import ValidationError
+from spyne.util import reconstruct_url
 
 from pkg_resources import resource_filename
 
@@ -69,14 +70,52 @@ class IndexService(ServiceBase):
             ) for package in ctx.udc.session.query(Package)]
 
 
-
-def cache_package(spec):
+def cache_package(spec, own_url):
     from glob import glob
     from setuptools.command.easy_install import main as easy_install
+    import ConfigParser
 
     path = tempfile.mkdtemp('.spynepi')
     easy_install(["--user", "-U", "--editable", "--build-directory",
                                                            path, spec])
+
+    if os.environ.has_key('HOME'):
+        rc = os.path.join(os.environ['HOME'], '.pypirc')
+        config = ConfigParser.ConfigParser()
+
+        if os.path.exists(rc):
+            config.read(rc)
+
+        try:
+            config.add_section(REPO_NAME)
+
+            config.set(REPO_NAME, 'repository', own_url)
+            config.set(REPO_NAME, 'username', 'x')
+            config.set(REPO_NAME, 'password', 'y')
+
+        except ConfigParser.DuplicateSectionError:
+            pass
+
+        try:
+            config.add_section('distutils')
+        except ConfigParser.DuplicateSectionError:
+            pass
+
+        try:
+            index_servers = config.get('distutils', 'index-servers')
+            index_servers = index_servers.split('\n')
+            if 'spynepi' not in index_servers:
+                index_servers.append(REPO_NAME)
+
+        except ConfigParser.NoOptionError:
+            index_servers = [REPO_NAME]
+
+        config.set('distutils', 'index-servers', '\n'.join(index_servers))
+
+        config.write(open(rc,'w'))
+
+    else: # FIXME: ??? No idea. Hopefully setuptools knows better.
+        pass # raise NotImplementedError("$HOME not defined, .pypirc not found.")
 
     # plagiarized from setuptools
     try:
