@@ -1,2 +1,2 @@
-recursive-include spynepi/const/template/*
+recursive-include spynepi/const/template *.html
 include CHANGELOG.rst
