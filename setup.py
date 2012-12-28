@@ -11,6 +11,8 @@ PROJECT_NAME = 'spynepi'
 v = open(os.path.join(os.path.dirname(__file__), PROJECT_NAME, '__init__.py'), 'r')
 VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
 
+LONG_DESC = ""
+
 try:
     os.stat('CHANGELOG.rst')
     LONG_DESC = open('CHANGELOG.rst', 'r').read()
